@@ -2,6 +2,13 @@
 
 ## Usage
 
-1. `docker build -t sgt .`
-1. `docker run -ti --rm  -v $(pwd)/src:/usr/src/app  --name app sgt`
-1. `docker run -ti --rm  -v $(pwd)/src:/usr/src/app  --name app sgt sh --login`
+### Build application image
+
+1. `docker build -t grabtrack-app .`
+1. `docker run -ti --rm  -v $(pwd)/src:/usr/src/app --name app grabtrack-app`
+1. `docker run -ti --rm  -v $(pwd)/src:/usr/src/app --name app grabtrack-app sh --login`
+
+### Run the stack
+
+1. `docker-compose -f stack.yml up` add `-d` to run in the background
+1. `http://localhost:8080/?pgsql=db&username=postgres`
