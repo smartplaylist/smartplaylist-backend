@@ -8,6 +8,8 @@ services:
     environment:
       SPOTIPY_CLIENT_ID: <your_apps_client_id>
       SPOTIPY_CLIENT_SECRET: <your_apps_client_secret>
+    volumes:
+      - ./app:/usr/src/app
 
   db:
     image: postgres:14.1-alpine
