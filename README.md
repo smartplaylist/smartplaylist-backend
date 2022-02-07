@@ -2,7 +2,7 @@
 
 ## Usage
 
-1. `mv stack.yml-template stack.yml` and edti environment variables
+1. `mv stack.yml-template stack.yml` and edit environment variables
 1. Build the application image `docker build -t grabtrack-app .`
 1. Run the whole stack `docker-compose -f stack.yml up`
 1. Access Admier: <http://localhost:8080/?pgsql=db&username=postgres>
