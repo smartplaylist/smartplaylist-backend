@@ -16,7 +16,7 @@ services:
       - ./app:/usr/src/app
     depends_on:
       - db
-      - broker
+    #   - broker
 
   db:
     image: postgres:14.1-alpine
@@ -32,10 +32,11 @@ services:
     ports:
       - 8080:8080
 
-  broker:
-    image: rabbitmq:3.9.13-management-alpine
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-    ports:
-      - 15672:15672
+  # broker:
+  #   image: rabbitmq:3.9.13-management-alpine
+  #   environment:
+  #     RABBITMQ_DEFAULT_USER: guest
+  #     RABBITMQ_DEFAULT_PASS: guest
+  #   ports:
+  #     - 15672:15672
+  #     - 5672:5672

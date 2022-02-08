@@ -3,3 +3,4 @@ stack.yml
 
 __pycache__/
 .cache
+.ini
