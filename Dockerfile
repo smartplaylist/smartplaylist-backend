@@ -6,11 +6,13 @@ ENV SPOTIPY_CLIENT_ID: <your_apps_client_id>
 ENV SPOTIPY_CLIENT_SECRET: <your_apps_client_secret>
 
 COPY app/requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir pipenv && \
+    pipenv install
+
 
 COPY ./app .
 
-CMD [ "python", "./artists.py" ]
+CMD [ "pipenv", "run", "python", "./artists.py" ]
 
 # for development, so you can sh into the container
 # CMD [ "python", "./tools/sleep.py" ]
