@@ -4,7 +4,7 @@ version: '3.1'
 services:
 
   app:
-    image: grabtrack-app
+    build: ./app
     environment:
       SPOTIPY_CLIENT_ID: <your_apps_client_id>
       SPOTIPY_CLIENT_SECRET: <your_apps_client_secret>
@@ -25,6 +25,9 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: example
       POSTGRES_DB: spotify
+      PGDATA: /pgdata
+    volumes:
+      - ./pgdata:/pgdata
 
   adminer:
     image: adminer:4.8.1

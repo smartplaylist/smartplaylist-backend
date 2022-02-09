@@ -9,11 +9,11 @@ ENV POSTGRES_PASSWORD=example
 ENV POSTGRES_DB=spotify
 ENV POSTGRES_HOST=db
 
-COPY app/Pipfile ./
+COPY ./Pipfile ./
 RUN pip install --no-cache-dir pipenv && \
     pipenv install
 
-COPY ./app .
+COPY ./ .
 
 CMD [ "pipenv", "run", "python", "./src/artists.py" ]
 
