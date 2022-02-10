@@ -1,4 +1,6 @@
 .DS_Store
+.vscode
+
 stack.yml
 
 __pycache__/
