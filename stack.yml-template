@@ -6,8 +6,8 @@ services:
   app:
     build: ./app
     environment:
-      SPOTIPY_CLIENT_ID: <your_apps_client_id>
-      SPOTIPY_CLIENT_SECRET: <your_apps_client_secret>
+      SPOTIPY_CLIENT_ID: your_apps_client_id
+      SPOTIPY_CLIENT_SECRET: your_apps_client_secret
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: example
       POSTGRES_DB: spotify
