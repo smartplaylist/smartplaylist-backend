@@ -7,6 +7,15 @@ import psycopg2
 from psycopg2 import sql
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
+import pika
+
+QUEUE_NAME = "followed_artists"
+
+# "broker" is a RabbitMQ service name from stack.yml file
+connection = pika.BlockingConnection(pika.ConnectionParameters("broker"))
+channel = connection.channel()
+channel.queue_declare(queue=QUEUE_NAME)
+
 # Update connection string information
 host = os.environ["POSTGRES_HOST"]
 dbname = os.environ["POSTGRES_DB"]
@@ -32,15 +41,20 @@ while results["artists"]["next"]:
     results = sp.next(results["artists"])
     followed_artists.extend(results["artists"]["items"])
 
-# Save to db
+# Iterate over results, save to Postgres, push to Rabbit
 for i, item in enumerate(followed_artists):
     cursor.execute(
         "INSERT INTO followed_artists (spotify_id, name, popularity, followers, created_at, updated_at) VALUES (%s, %s, %s, %s, now(), now());",
         (item["id"], item["name"], item["popularity"], item["followers"]["total"]),
     )
+    channel.basic_publish(exchange="", routing_key=QUEUE_NAME, body=item["id"])
     print("Saved ", i, item["name"])
 
-# Clean up
+
+# RabbitMQ clean up
+connection.close()
+
+# Postgres clean up
 conn.commit()
 cursor.close()
 conn.close()
