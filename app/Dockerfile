@@ -8,7 +8,7 @@ ENV POSTGRES_USER=postgres
 ENV POSTGRES_PASSWORD=example
 ENV POSTGRES_DB=spotify
 ENV POSTGRES_HOST=db
-ENV SPOTIPY_OAUTH_TOKEN=your_token_here
+ENV SPOTIPY_OAUTH_TOKEN=your_spotify_oauth_token_here
 
 ADD ./src/ ./
 
