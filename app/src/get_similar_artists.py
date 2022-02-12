@@ -11,6 +11,8 @@ import pika
 
 QUEUE_NAME = "followed_artists"
 
+# -> https://www.rabbitmq.com/tutorials/tutorial-one-python.html
+
 # "broker" is a RabbitMQ service name from stack.yml file
 connection = pika.BlockingConnection(pika.ConnectionParameters("broker"))
 channel = connection.channel()
@@ -49,7 +51,6 @@ for i, item in enumerate(followed_artists):
     )
     channel.basic_publish(exchange="", routing_key=QUEUE_NAME, body=item["id"])
     print("Saved ", i, item["name"])
-
 
 # RabbitMQ clean up
 connection.close()
