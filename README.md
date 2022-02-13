@@ -2,7 +2,7 @@
 
 ## Usage
 
-1. `cp stack.yml-template stack.yml` and edit environment variables (add Spotify credentials)
+1. `cp .env-template .env` and edit environment variables (add Spotify credentials)
 1. Run the stack `docker-compose -f stack.yml up`
 1. Access Admier: <http://localhost:8080/?pgsql=db&username=postgres>
 1. Open RabbitMQ GUI: <http://localhost:15672/>
