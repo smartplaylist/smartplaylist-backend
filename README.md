@@ -20,7 +20,7 @@ Check the data here: <http://localhost:8080/?pgsql=db&username=postgres&db=spoti
 
 ## Get oAuth token
 
-Go to: <https://developer.spotify.com/console/get-current-user/> fill in data and copy your token.
+Go to: <https://developer.spotify.com/console/get-following/> fill in data and copy your token.
 
 ## Other
 

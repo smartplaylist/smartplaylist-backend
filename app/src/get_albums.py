@@ -3,7 +3,6 @@ import sys
 import pika
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-from spotipy.oauth2 import SpotifyOAuth
 import imports.broker as broker
 import imports.db as db
 
@@ -14,9 +13,10 @@ QUEUE_NAME = "artists"
 def main():
     broker_connection, channel = broker.create_channel(QUEUE_NAME)
     db_connection, cursor = db.init_connection()
-    sp = spotipy.Spotify(auth=os.environ["SPOTIFY_OAUTH_TOKEN"])
+    sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials())
 
     def callback(ch, method, properties, body):
+        print(method)
         id = body.decode()
         # Iterate over results to get the full list
         results = sp.artist_albums(artist_id=id, limit=50)
@@ -47,7 +47,10 @@ def main():
             except Exception as e:
                 print("💽 skipped ", i, item["name"], artists, e)
 
-    channel.basic_consume(queue=QUEUE_NAME, on_message_callback=callback, auto_ack=True)
+        ch.basic_ack(method.delivery_tag)
+
+    channel.basic_qos(prefetch_count=1)
+    channel.basic_consume(on_message_callback=callback, queue=QUEUE_NAME)
 
     print(" [*] Waiting for messages. To exit press CTRL+C")
     channel.start_consuming()

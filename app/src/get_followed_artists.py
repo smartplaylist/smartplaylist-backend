@@ -1,7 +1,5 @@
 import os
 import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
-from spotipy.oauth2 import SpotifyOAuth
 import imports.broker as broker
 import imports.db as db
 

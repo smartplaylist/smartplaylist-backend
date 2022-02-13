@@ -7,6 +7,8 @@ def create_channel(name):
     connection = pika.BlockingConnection(pika.ConnectionParameters("broker"))
     channel = connection.channel()
     channel.queue_declare(queue=name)
+    channel.basic_qos(prefetch_count=1)
+
     return connection, channel
 
 
