@@ -1,8 +1,8 @@
-"""Create followed_artists table
+"""Create tracks table
 
-Revision ID: 9f24a192758c
-Revises:
-Create Date: 2022-02-09 22:14:25.019965
+Revision ID: be6a440b9533
+Revises: dd48b2f5e3fa
+Create Date: 2022-02-13 12:46:11.545396
 
 """
 from alembic import op
@@ -10,15 +10,15 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = "9f24a192758c"
-down_revision = None
+revision = "be6a440b9533"
+down_revision = "dd48b2f5e3fa"
 branch_labels = None
 depends_on = None
 
 
 def upgrade():
     op.create_table(
-        "followed_artists",
+        "tracks",
         sa.Column("id", sa.Integer, primary_key=True),
         sa.Column("spotify_id", sa.Text, nullable=False),
         sa.Column("name", sa.Text, nullable=False),
@@ -29,10 +29,8 @@ def upgrade():
         sa.Column("updated_at", sa.TIMESTAMP, nullable=False),
     )
 
-    op.create_unique_constraint(
-        "uniq_followed_artists_spotify_id", "followed_artists", ["spotify_id"]
-    )
+    op.create_unique_constraint("uniq_tracks_spotify_id", "tracks", ["spotify_id"])
 
 
 def downgrade():
-    op.drop_table("followed_artists")
+    op.drop_table("tracks")

@@ -16,6 +16,7 @@ Check the data here: <http://localhost:8080/?pgsql=db&username=postgres&db=spoti
 1. Have the stack working (you need a running database) `docker-compose -f stack.yml up -d`
 1. `docker build -t alembic-image ./db`
 1. Run migrations `docker run -ti -v $(pwd)/db:/db --rm --network spotify-grabtrack_default alembic-image alembic upgrade head`
+1. Undo last migration `docker run -ti -v $(pwd)/db:/db --rm --network spotify-grabtrack_default alembic-image alembic downgrade -1`
 
 ## Get oAuth token
 
@@ -23,5 +24,5 @@ Go to: <https://developer.spotify.com/console/get-current-user/> fill in data an
 
 ## Other
 
-* Test application code: `docker run -ti --rm --network spotify-grabtrack_default -v $(pwd)/app/src:/app --name app spotify-grabtrack_app sh --login`
+* Test application code: `docker run -ti --rm --network spotify-grabtrack_default -v $(pwd)/app/src:/app --env-file .env --name app spotify-grabtrack_app sh --login`
 * Enter application container `docker run -ti --rm -v $(pwd)/app/src:/app --name app spotify-grabtrack_app sh --login`

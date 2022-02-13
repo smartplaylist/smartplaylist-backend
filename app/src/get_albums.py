@@ -14,7 +14,7 @@ QUEUE_NAME = "artists"
 def main():
     broker_connection, channel = broker.create_channel(QUEUE_NAME)
     db_connection, cursor = db.init_connection()
-    sp = spotipy.Spotify(auth=os.environ["SPOTIPY_OAUTH_TOKEN"])
+    sp = spotipy.Spotify(auth=os.environ["SPOTIFY_OAUTH_TOKEN"])
 
     def callback(ch, method, properties, body):
         id = body.decode()
@@ -45,7 +45,7 @@ def main():
                 )
                 # print("Saved ", i, item["name"], artists)
             except Exception as e:
-                print("Skipped ", i, item["name"], artists, e)
+                print("💽 skipped ", i, item["name"], artists, e)
 
     channel.basic_consume(queue=QUEUE_NAME, on_message_callback=callback, auto_ack=True)
 

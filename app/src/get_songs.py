@@ -14,7 +14,7 @@ QUEUE_NAME = "artists"
 def main():
     broker_connection, channel = broker.create_channel(QUEUE_NAME)
     db_connection, cursor = db.init_connection()
-    sp = spotipy.Spotify(auth=os.environ["SPOTIPY_OAUTH_TOKEN"])
+    sp = spotipy.Spotify(auth=os.environ["SPOTIFY_OAUTH_TOKEN"])
 
     def callback(ch, method, properties, body):
         id = body.decode()

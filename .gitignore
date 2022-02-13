@@ -6,5 +6,6 @@ stack.yml
 __pycache__/
 .cache
 .ini
+.env
 
 pgdata/
