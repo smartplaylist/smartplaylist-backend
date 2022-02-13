@@ -1,12 +1,12 @@
-import os, time
+import os
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 from spotipy.oauth2 import SpotifyOAuth
-
-import imports.db as db
 import imports.broker as broker
+import imports.db as db
 
-QUEUE_NAME = "followed_artists"
+
+QUEUE_NAME = "artists"
 
 
 def main():
@@ -24,8 +24,14 @@ def main():
     # Iterate over results, save to Postgres, push to Rabbit
     for i, item in enumerate(followed_artists):
         cursor.execute(
-            "INSERT INTO followed_artists (spotify_id, name, popularity, followers, created_at, updated_at) VALUES (%s, %s, %s, %s, now(), now());",
-            (item["id"], item["name"], item["popularity"], item["followers"]["total"]),
+            "INSERT INTO followed_artists (spotify_id, name, popularity, followers, genres, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, now(), now());",
+            (
+                item["id"],
+                item["name"],
+                item["popularity"],
+                item["followers"]["total"],
+                " ".join(item["genres"]),
+            ),
         )
         channel.basic_publish(exchange="", routing_key=QUEUE_NAME, body=item["id"])
         print("Saved ", i, item["name"])
