@@ -1,3 +1,4 @@
+from distutils.log import info
 import os
 import sys
 import spotipy
@@ -7,13 +8,11 @@ import imports.db as db
 import imports.logger as logger
 
 
-READING_QUEUE_NAME = "artists"
-WRITING_QUEUE_NAME = "albums"
+READING_QUEUE_NAME = "tracks"
 
 
 def main():
     consume_channel = broker.create_channel(READING_QUEUE_NAME)
-    publish_channel = broker.create_channel(WRITING_QUEUE_NAME)
     db_connection, cursor = db.init_connection()
     sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials())
     log = logger.get_logger(os.path.basename(__file__))
@@ -21,37 +20,36 @@ def main():
     def callback(ch, method, properties, body):
         id = body.decode()
         # Iterate over results to get the full list
-        results = sp.artist_albums(artist_id=id, limit=50)
-        items = results["items"]
-        while results["next"]:
-            results = sp.next(results)
-            items.extend(results["items"])
+        result = sp.track(track_id=id)
+        track_popularity = result["popularity"]
+        track_name = result["name"]
 
-        for i, item in enumerate(items):
-            artists = []
-            for artist in item["artists"]:
-                artists.append("%s: %s" % (artist["name"], artist["type"]))
+        result = sp.audio_features(tracks=[id])
+
+        if not result or result[0] is None:
+            log.info(f"Track's {id} audio_features() didn't return any results")
+            ch.basic_ack(method.delivery_tag)
+            return
+
+        for item in result:
             try:
                 cursor.execute(
-                    "INSERT INTO albums (spotify_id, name, artists, album_group, album_type, release_date, release_date_precision, total_tracks, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, now(), now());",
+                    "UPDATE tracks SET popularity=%s, updated_at=now() WHERE spotify_id=%s;",
                     (
-                        item["id"],
-                        item["name"],
-                        ", ".join(artists),
-                        item["album_group"],
-                        item["album_type"],
-                        item["release_date"],
-                        item["release_date_precision"],
-                        item["total_tracks"],
+                        track_popularity,
+                        id,
                     ),
                 )
+
             except Exception as e:
                 log.error("id: %s (%s)" % (item["id"], str(e).replace("\n", " ")))
             else:
-                log.info(f"Saved id: {item['id']}")
-                publish_channel.basic_publish(
-                    exchange="", routing_key=WRITING_QUEUE_NAME, body=item["id"]
-                )
+                log.info(f"Updated id: {id}")
+
+        # dorobienie migracji
+        # zapisanie informacji pobranych przez audio_features
+        # pobranie tablicy genres z artystów
+        # lepsze formatowaine artists w albumach i trackach (json? {artists:["faze miyaki", "sudoo"]})
 
         ch.basic_ack(method.delivery_tag)
 

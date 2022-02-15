@@ -2,15 +2,17 @@ import os
 import spotipy
 import imports.broker as broker
 import imports.db as db
+import imports.logger as logger
 
 
 QUEUE_NAME = "artists"
 
 
 def main():
-    broker_connection, channel = broker.create_channel(QUEUE_NAME)
+    channel = broker.create_channel(QUEUE_NAME)
     db_connection, cursor = db.init_connection()
     sp = spotipy.Spotify(auth=os.environ["SPOTIFY_OAUTH_TOKEN"])
+    log = logger.get_logger(os.path.basename(__file__))
 
     # Iterate over results to get the full list
     results = sp.current_user_followed_artists(limit=50)
@@ -33,12 +35,13 @@ def main():
                 ),
             )
             channel.basic_publish(exchange="", routing_key=QUEUE_NAME, body=item["id"])
-            print("Saved ", i, item["name"])
         except Exception as e:
-            print("👨🏽‍🎤 skipped ", i, item["name"], e)
+            log.error("id: %s (%s)" % (item["id"], str(e).replace("\n", " ")))
+        else:
+            log.info(f"Saved id: {item['id']}")
 
     # Clean up and close connections
-    broker.close_connection(broker_connection)
+    broker.close_connection()
     db.close_connection(db_connection, cursor)
 
 

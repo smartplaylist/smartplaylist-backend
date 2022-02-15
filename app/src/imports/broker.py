@@ -1,16 +1,17 @@
 import pika
 
+"""broker" is a RabbitMQ service name from stack.yml file"""
+connection = pika.BlockingConnection(pika.ConnectionParameters("broker"))
+
 
 def create_channel(name):
-    """Creates RabbitMQ channel
-    "broker" is a RabbitMQ service name from stack.yml file"""
-    connection = pika.BlockingConnection(pika.ConnectionParameters("broker"))
+    """Creates RabbitMQ channel"""
     channel = connection.channel()
     channel.queue_declare(queue=name)
     channel.basic_qos(prefetch_count=1)
 
-    return connection, channel
+    return channel
 
 
-def close_connection(connection):
+def close_connection():
     connection.close()

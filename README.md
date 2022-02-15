@@ -18,6 +18,12 @@ Check the data here: <http://localhost:8080/?pgsql=db&username=postgres&db=spoti
 1. Run migrations `docker run -ti -v $(pwd)/db:/db --rm --network spotify-grabtrack_default alembic-image alembic upgrade head`
 1. Undo last migration `docker run -ti -v $(pwd)/db:/db --rm --network spotify-grabtrack_default alembic-image alembic downgrade -1`
 
+## Running the listeners
+1. Get followed artists `docker run -ti --rm --network spotify-grabtrack_default -v $(pwd)/app/src:/app --env-file .env spotify-grabtrack_app pipenv run python get_followed_artists.py`
+1. Get albums `docker run -ti --rm --network spotify-grabtrack_default -v $(pwd)/app/src:/app --env-file .env spotify-grabtrack_app pipenv run python get_albums.py`
+1. Get album details `docker run -ti --rm --network spotify-grabtrack_default -v $(pwd)/app/src:/app --env-file .env spotify-grabtrack_app pipenv run python get_album_details.py`
+1. Get track details `docker run -ti --rm --network spotify-grabtrack_default -v $(pwd)/app/src:/app --env-file .env spotify-grabtrack_app pipenv run python get_track_details.py`
+
 ## Get oAuth token
 
 Go to: <https://developer.spotify.com/console/get-following/> fill in data and copy your token.

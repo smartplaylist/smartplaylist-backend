@@ -23,6 +23,17 @@ def upgrade():
         sa.Column("spotify_id", sa.Text, nullable=False),
         sa.Column("name", sa.Text, nullable=False),
         sa.Column("artists", sa.Text, nullable=False),
+        sa.Column("release_date", sa.Text, nullable=False),
+        sa.Column("genres", sa.Text, nullable=True),
+        sa.Column(
+            "release_date_precision",
+            sa.Enum("day", "month", "year", name="release_date_precision_enum"),
+            nullable=False,
+        ),
+        sa.Column("total_tracks", sa.Integer, nullable=False),
+        sa.Column("popularity", sa.Integer, nullable=True),
+        sa.Column("label", sa.Text, nullable=True),
+        sa.Column("copyrights", sa.Text, nullable=True),
         sa.Column(
             "album_group",
             sa.Enum(
@@ -35,13 +46,6 @@ def upgrade():
             sa.Enum("album", "single", "compilation", name="album_type_enum"),
             nullable=False,
         ),
-        sa.Column("release_date", sa.Text, nullable=False),
-        sa.Column(
-            "release_date_precision",
-            sa.Enum("day", "month", "year", name="release_date_precision_enum"),
-            nullable=False,
-        ),
-        sa.Column("total_tracks", sa.Integer, nullable=False),
         sa.Column("created_at", sa.TIMESTAMP, nullable=False),
         sa.Column("updated_at", sa.TIMESTAMP, nullable=False),
     )
