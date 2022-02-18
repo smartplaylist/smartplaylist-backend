@@ -16,7 +16,7 @@ def update_album(cursor, data):
     for copyright in data["copyrights"]:
         copyrights.append("%s" % (copyright["text"]))
     cursor.execute(
-        "UPDATE albums SET genres=%s, popularity=%s, label=%s, copyright=%s, updated_at=now() WHERE spotify_id=%s;",
+        "UPDATE albums SET genres=%s, popularity=%s, label=%s, copyrights=%s, updated_at=now() WHERE spotify_id=%s;",
         (
             ", ".join(data["genres"]),
             data["popularity"],
