@@ -22,21 +22,32 @@ def main():
         # Iterate over results to get the full list
         result = sp.track(track_id=id)
         track_popularity = result["popularity"]
-        track_name = result["name"]
 
-        result = sp.audio_features(tracks=[id])
+        result_features = sp.audio_features(tracks=[id])
 
-        if not result or result[0] is None:
+        if not result_features or result_features[0] is None:
             log.info(f"Track's {id} audio_features() didn't return any results")
             ch.basic_ack(method.delivery_tag)
             return
 
-        for item in result:
+        for item in result_features:
             try:
                 cursor.execute(
-                    "UPDATE tracks SET popularity=%s, updated_at=now() WHERE spotify_id=%s;",
+                    "UPDATE tracks SET popularity=%s, danceability=%s, energy=%s, key=%s, loudness=%s, mode=%s, speechiness=%s, acousticness=%s, instrumentalness=%s, liveness=%s, valence=%s, tempo=%s, time_signature=%s, updated_at=now() WHERE spotify_id=%s;",
                     (
                         track_popularity,
+                        item["danceability"],
+                        item["energy"],
+                        item["key"],
+                        item["loudness"],
+                        item["mode"],
+                        item["speechiness"],
+                        item["acousticness"],
+                        item["instrumentalness"],
+                        item["liveness"],
+                        item["valence"],
+                        item["tempo"],
+                        item["time_signature"],
                         id,
                     ),
                 )
