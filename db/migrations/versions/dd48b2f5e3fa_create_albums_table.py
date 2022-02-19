@@ -5,6 +5,7 @@ Revises: 9f24a192758c
 Create Date: 2022-02-13 12:44:25.528634
 
 """
+from tokenize import String
 from alembic import op
 import sqlalchemy as sa
 
@@ -22,7 +23,10 @@ def upgrade():
         sa.Column("id", sa.Integer, primary_key=True),
         sa.Column("spotify_id", sa.Text, nullable=False),
         sa.Column("name", sa.Text, nullable=False),
-        sa.Column("artists", sa.Text, nullable=False),
+        sa.Column("main_artist", sa.Text, nullable=False),
+        sa.Column(
+            "all_artists", sa.dialects.postgresql.ARRAY(sa.String()), nullable=False
+        ),
         sa.Column("release_date", sa.Text, nullable=False),
         sa.Column("genres", sa.Text, nullable=True),
         sa.Column(

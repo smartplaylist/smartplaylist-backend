@@ -31,7 +31,7 @@ def main():
                     item["name"],
                     item["popularity"],
                     item["followers"]["total"],
-                    " ".join(item["genres"]),
+                    ",".join(item["genres"]),
                 ),
             )
             channel.basic_publish(exchange="", routing_key=QUEUE_NAME, body=item["id"])

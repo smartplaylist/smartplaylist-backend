@@ -6,7 +6,6 @@ import imports.broker as broker
 import imports.db as db
 import imports.logger as logger
 
-
 READING_QUEUE_NAME = "albums"
 WRITING_QUEUE_NAME = "tracks"
 
@@ -34,6 +33,11 @@ def main():
     sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials())
     log = logger.get_logger(os.path.basename(__file__))
 
+    cursor.execute("SELECT spotify_id, genres FROM followed_artists")
+    artist_genres = {
+        artist_genre[0]: artist_genre[1] for artist_genre in cursor.fetchall()
+    }
+
     def callback(ch, method, properties, body):
 
         id = body.decode()
@@ -46,19 +50,20 @@ def main():
         for i, item in enumerate(tracks):
             artists = []
             for artist in item["artists"]:
-                artists.append("%s: %s" % (artist["name"], artist["type"]))
+                artists.append(artist["name"])
             try:
                 cursor.execute(
-                    "INSERT INTO tracks (spotify_id, name, artists, track_number, disc_number, duration_ms, explicit, type, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, now(), now());",
+                    "INSERT INTO tracks (spotify_id, name, main_artist, all_artists, genres, track_number, disc_number, duration_ms, explicit, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, now(), now());",
                     (
                         item["id"],
                         item["name"],
-                        ", ".join(artists),
+                        artists[0],
+                        artists,
+                        artist_genres[item["artists"][0]["id"]],
                         item["track_number"],
                         item["disc_number"],
                         item["duration_ms"],
                         item["explicit"],
-                        item["type"],
                     ),
                 )
             except Exception as e:

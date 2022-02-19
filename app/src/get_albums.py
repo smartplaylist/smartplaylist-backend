@@ -6,6 +6,7 @@ import imports.broker as broker
 import imports.db as db
 import imports.logger as logger
 
+SPOTIFY_MARKET = os.environ["SPOTIFY_MARKET"]
 
 READING_QUEUE_NAME = "artists"
 WRITING_QUEUE_NAME = "albums"
@@ -21,23 +22,30 @@ def main():
     def callback(ch, method, properties, body):
         id = body.decode()
         # Iterate over results to get the full list
-        results = sp.artist_albums(artist_id=id, limit=50)
+        results = sp.artist_albums(artist_id=id, limit=50, country=SPOTIFY_MARKET)
         items = results["items"]
         while results["next"]:
             results = sp.next(results)
             items.extend(results["items"])
 
+        # Remove albums that were released before 2021
+        items = filter(
+            lambda x: x["release_date"] >= "2021" and x["album_type"] != "compilation",
+            items,
+        )
+
         for i, item in enumerate(items):
             artists = []
             for artist in item["artists"]:
-                artists.append("%s: %s" % (artist["name"], artist["type"]))
+                artists.append(artist["name"])
             try:
                 cursor.execute(
-                    "INSERT INTO albums (spotify_id, name, artists, album_group, album_type, release_date, release_date_precision, total_tracks, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, now(), now());",
+                    "INSERT INTO albums (spotify_id, name, main_artist, all_artists, album_group, album_type, release_date, release_date_precision, total_tracks, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, now(), now());",
                     (
                         item["id"],
                         item["name"],
-                        ", ".join(artists),
+                        artists[0],
+                        artists,
                         item["album_group"],
                         item["album_type"],
                         item["release_date"],
