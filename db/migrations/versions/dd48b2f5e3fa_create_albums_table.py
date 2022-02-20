@@ -28,7 +28,6 @@ def upgrade():
             "all_artists", sa.dialects.postgresql.ARRAY(sa.String()), nullable=False
         ),
         sa.Column("release_date", sa.Text, nullable=False),
-        sa.Column("genres", sa.Text, nullable=True),
         sa.Column(
             "release_date_precision",
             sa.Enum("day", "month", "year", name="release_date_precision_enum"),

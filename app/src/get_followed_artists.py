@@ -1,17 +1,21 @@
 import os
 import spotipy
+from spotipy.oauth2 import SpotifyOAuth
 import imports.broker as broker
 import imports.db as db
 import imports.logger as logger
 
 
 QUEUE_NAME = "artists"
+SPOTIY_SCOPE = "user-follow-read"
 
 
 def main():
     channel = broker.create_channel(QUEUE_NAME)
     db_connection, cursor = db.init_connection()
-    sp = spotipy.Spotify(auth=os.environ["SPOTIFY_OAUTH_TOKEN"])
+    sp = spotipy.Spotify(
+        auth_manager=SpotifyOAuth(scope=SPOTIY_SCOPE, open_browser=False)
+    )
     log = logger.get_logger(os.path.basename(__file__))
 
     # Iterate over results to get the full list
@@ -31,7 +35,7 @@ def main():
                     item["name"],
                     item["popularity"],
                     item["followers"]["total"],
-                    ",".join(item["genres"]),
+                    item["genres"],
                 ),
             )
             channel.basic_publish(exchange="", routing_key=QUEUE_NAME, body=item["id"])

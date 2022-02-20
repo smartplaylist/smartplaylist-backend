@@ -57,8 +57,6 @@ def main():
             else:
                 log.info(f"Updated id: {id}")
 
-        # pobranie tablicy genres z artystów
-
         ch.basic_ack(method.delivery_tag)
 
     consume_channel.basic_qos(prefetch_count=1)

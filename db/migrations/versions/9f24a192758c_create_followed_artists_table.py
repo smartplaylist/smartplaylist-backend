@@ -24,7 +24,7 @@ def upgrade():
         sa.Column("name", sa.Text, nullable=False),
         sa.Column("popularity", sa.Integer, nullable=False),
         sa.Column("followers", sa.Integer, nullable=False),
-        sa.Column("genres", sa.Text, nullable=False),
+        sa.Column("genres", sa.dialects.postgresql.ARRAY(sa.String()), nullable=False),
         sa.Column("created_at", sa.TIMESTAMP, nullable=False),
         sa.Column("updated_at", sa.TIMESTAMP, nullable=False),
     )

@@ -1,29 +1,45 @@
+from datetime import date
+import logging
 import os
 import sys
+
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import imports.db as db
 import imports.logger as logger
 
-username = "_jkulak"
 scope = "playlist-modify-public"
 
 
 def main():
     db_connection, cursor = db.init_connection()
     sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=scope, open_browser=False))
+    username = sp.me()["id"]
     log = logger.get_logger(os.path.basename(__file__))
 
     cursor.execute(
-        "SELECT spotify_id FROM tracks WHERE release_date>='2022' AND popularity>50 ORDER BY release_date DESC"
+        """
+        SELECT spotify_id
+        FROM tracks
+        WHERE release_date>='2021-09-01'
+        AND popularity>10
+        AND tempo>122 AND tempo<128
+        AND danceability>0.8
+        AND energy>0.8
+        ORDER BY release_date DESC"""
     )
 
-    results = cursor.fetchall()
-    print(len(results))
+    tracks = cursor.fetchall()
+    tracks = ["spotify:track:%s" % spotify_id for spotify_id in tracks]
 
-    result = sp.user_playlist_create(user=username, name="testsss")
-    log.info("Created playlist", result)
-    print(result)
+    today = date.today()
+    playlist = sp.user_playlist_create(
+        user=username, name="🥁 gt/%s" % today.strftime("%Y-%m-%d")
+    )
+
+    result = sp.user_playlist_add_tracks(
+        user=username, playlist_id=playlist["id"], tracks=tracks
+    )
 
     db.close_connection(db_connection, cursor)
 

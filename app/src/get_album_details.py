@@ -13,11 +13,10 @@ WRITING_QUEUE_NAME = "tracks"
 def update_album(cursor, data):
     copyrights = []
     for copyright in data["copyrights"]:
-        copyrights.append("%s" % (copyright["text"]))
+        copyrights.append(copyright["text"])
     cursor.execute(
-        "UPDATE albums SET genres=%s, popularity=%s, label=%s, copyrights=%s, updated_at=now() WHERE spotify_id=%s;",
+        "UPDATE albums SET popularity=%s, label=%s, copyrights=%s, updated_at=now() WHERE spotify_id=%s;",
         (
-            ", ".join(data["genres"]),
             data["popularity"],
             data["label"],
             ", ".join(copyrights),
@@ -50,16 +49,19 @@ def main():
 
         for i, item in enumerate(tracks):
             artists = []
+            genres = []
+
             for artist in item["artists"]:
                 artists.append(artist["name"])
 
-            genres = []
-            if item["artists"] and item["artists"][0]["id"] in artist_genres:
-                genres = artist_genres[item["artists"][0]["id"]]
+                if item["artists"] and artist["id"] in artist_genres:
+                    genres.extend(artist_genres[artist["id"]])
+
+            genres = list(set(genres))
 
             try:
                 cursor.execute(
-                    "INSERT INTO tracks (spotify_id, name, main_artist, all_artists, release_date, genres, track_number, disc_number, duration_ms, explicit, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now(), now());",
+                    "INSERT INTO tracks (spotify_id, name, main_artist, all_artists, release_date, genres, track_number, disc_number, duration_ms, explicit, preview_url, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now(), now());",
                     (
                         item["id"],
                         item["name"],
@@ -71,6 +73,7 @@ def main():
                         item["disc_number"],
                         item["duration_ms"],
                         item["explicit"],
+                        item["preview_url"],
                     ),
                 )
             except Exception as e:

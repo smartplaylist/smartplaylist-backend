@@ -27,7 +27,7 @@ def upgrade():
             "all_artists", sa.dialects.postgresql.ARRAY(sa.String()), nullable=False
         ),
         sa.Column("release_date", sa.Text, nullable=False),
-        sa.Column("genres", sa.Text, nullable=True),
+        sa.Column("genres", sa.dialects.postgresql.ARRAY(sa.String()), nullable=True),
         sa.Column("popularity", sa.Integer, nullable=True),
         sa.Column("track_number", sa.Integer, nullable=False),
         sa.Column("disc_number", sa.Integer, nullable=False),
@@ -45,6 +45,7 @@ def upgrade():
         sa.Column("valence", sa.Float(precision=5), nullable=True),
         sa.Column("tempo", sa.Float(precision=5), nullable=True),
         sa.Column("time_signature", sa.Integer, nullable=True),
+        sa.Column("preview_url", sa.Text, nullable=True),
         sa.Column("created_at", sa.TIMESTAMP, nullable=False),
         sa.Column("updated_at", sa.TIMESTAMP, nullable=False),
     )
