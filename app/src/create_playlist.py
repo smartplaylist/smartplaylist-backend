@@ -1,19 +1,17 @@
 import os
 import sys
 import spotipy
-from spotipy.oauth2 import SpotifyPKCE
+from spotipy.oauth2 import SpotifyOAuth
 import imports.db as db
 import imports.logger as logger
 
-username = ""
+username = "_jkulak"
 scope = "playlist-modify-public"
 
 
 def main():
     db_connection, cursor = db.init_connection()
-    # token = SpotifyOAuth(scope=scope, show_dialog=True, username=username)
-    sp = spotipy.Spotify(auth_manager=SpotifyPKCE(open_browser=True))
-
+    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=scope, open_browser=False))
     log = logger.get_logger(os.path.basename(__file__))
 
     cursor.execute(

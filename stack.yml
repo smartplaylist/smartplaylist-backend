@@ -13,6 +13,8 @@ services:
             POSTGRES_HOST: ${POSTGRES_HOST-db}
         # volumes:
         # - ./app/src:/app
+        ports:
+            - 8083:8083
         depends_on:
             - db
             - broker
