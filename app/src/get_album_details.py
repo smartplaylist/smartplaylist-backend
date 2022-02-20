@@ -46,20 +46,27 @@ def main():
         update_album(cursor, result)
 
         tracks = result["tracks"]["items"]
+        album_release_date = result["release_date"]
 
         for i, item in enumerate(tracks):
             artists = []
             for artist in item["artists"]:
                 artists.append(artist["name"])
+
+            genres = []
+            if item["artists"] and item["artists"][0]["id"] in artist_genres:
+                genres = artist_genres[item["artists"][0]["id"]]
+
             try:
                 cursor.execute(
-                    "INSERT INTO tracks (spotify_id, name, main_artist, all_artists, genres, track_number, disc_number, duration_ms, explicit, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, now(), now());",
+                    "INSERT INTO tracks (spotify_id, name, main_artist, all_artists, release_date, genres, track_number, disc_number, duration_ms, explicit, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now(), now());",
                     (
                         item["id"],
                         item["name"],
                         artists[0],
                         artists,
-                        artist_genres[item["artists"][0]["id"]],
+                        album_release_date,
+                        genres,
                         item["track_number"],
                         item["disc_number"],
                         item["duration_ms"],

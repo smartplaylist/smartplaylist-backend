@@ -26,6 +26,7 @@ def upgrade():
         sa.Column(
             "all_artists", sa.dialects.postgresql.ARRAY(sa.String()), nullable=False
         ),
+        sa.Column("release_date", sa.Text, nullable=False),
         sa.Column("genres", sa.Text, nullable=True),
         sa.Column("popularity", sa.Integer, nullable=True),
         sa.Column("track_number", sa.Integer, nullable=False),

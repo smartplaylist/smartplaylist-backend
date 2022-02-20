@@ -31,7 +31,6 @@ def main():
             return
 
         for item in result_features:
-            print(item)
             try:
                 cursor.execute(
                     "UPDATE tracks SET popularity=%s, danceability=%s, energy=%s, key=%s, loudness=%s, mode=%s, speechiness=%s, acousticness=%s, instrumentalness=%s, liveness=%s, valence=%s, tempo=%s, time_signature=%s, updated_at=now() WHERE spotify_id=%s;",
