@@ -20,13 +20,21 @@ def main():
 
     # Iterate over results to get the full list
     results = sp.current_user_followed_artists(limit=50)
-    followed_artists = results["artists"]["items"]
+
+    artists = results["artists"]["items"]
     while results["artists"]["next"]:
         results = sp.next(results["artists"])
-        followed_artists.extend(results["artists"]["items"])
+        artists.extend(results["artists"]["items"])
+
+    similar_artists = []
+    for artist in artists:
+        similar = sp.artist_related_artists(artist["id"])
+        similar_artists.extend(similar["artists"])
+
+    artists.extend(similar_artists)
 
     # Iterate over results, save to Postgres, push to Rabbit
-    for i, item in enumerate(followed_artists):
+    for i, item in enumerate(artists):
         try:
             cursor.execute(
                 "INSERT INTO followed_artists (spotify_id, name, popularity, followers, genres, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, now(), now());",
