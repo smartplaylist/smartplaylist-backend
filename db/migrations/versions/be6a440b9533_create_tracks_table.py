@@ -23,6 +23,8 @@ def upgrade():
         sa.Column("spotify_id", sa.Text, nullable=False),
         sa.Column("name", sa.Text, nullable=False),
         sa.Column("main_artist", sa.Text, nullable=False),
+        sa.Column("main_artist_popularity", sa.Integer, nullable=True),
+        sa.Column("main_artist_followers", sa.Integer, nullable=True),
         sa.Column(
             "all_artists", sa.dialects.postgresql.ARRAY(sa.String()), nullable=False
         ),

@@ -23,6 +23,7 @@ def update_album(cursor, data):
             data["id"],
         ),
     )
+    print("Aktualizuję album", data["name"], data["id"])
 
 
 def main():
@@ -32,9 +33,10 @@ def main():
     sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials())
     log = logger.get_logger(os.path.basename(__file__))
 
-    cursor.execute("SELECT spotify_id, genres FROM followed_artists")
-    artist_genres = {
-        artist_genre[0]: artist_genre[1] for artist_genre in cursor.fetchall()
+    cursor.execute("SELECT name, genres, popularity, followers FROM followed_artists")
+    artist_data = {
+        artist_genre[0]: [artist_genre[1], artist_genre[2], artist_genre[3]]
+        for artist_genre in cursor.fetchall()
     }
 
     def callback(ch, method, properties, body):
@@ -54,18 +56,20 @@ def main():
             for artist in item["artists"]:
                 artists.append(artist["name"])
 
-                if item["artists"] and artist["id"] in artist_genres:
-                    genres.extend(artist_genres[artist["id"]])
+                if item["artists"] and artist["name"] in artist_data:
+                    genres.extend(artist_data[artist["name"]][0])
 
             genres = list(set(genres))
 
             try:
                 cursor.execute(
-                    "INSERT INTO tracks (spotify_id, name, main_artist, all_artists, release_date, genres, track_number, disc_number, duration_ms, explicit, preview_url, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now(), now());",
+                    "INSERT INTO tracks (spotify_id, name, main_artist, main_artist_popularity, main_artist_followers, all_artists, release_date, genres, track_number, disc_number, duration_ms, explicit, preview_url, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now(), now());",
                     (
                         item["id"],
                         item["name"],
                         artists[0],
+                        artist_data[artists[0]][1],
+                        artist_data[artists[0]][2],
                         artists,
                         album_release_date,
                         genres,

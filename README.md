@@ -26,9 +26,18 @@ Check the data here: <http://localhost:8080/?pgsql=db&username=postgres&db=spoti
 
 ## Get oAuth token
 
-Go to: <https://developer.spotify.com/console/get-following/> fill in data and copy your token.
+~~Go to: <https://developer.spotify.com/console/get-following/> fill in data and copy your token.~~
+
+After running `get_followed_artists.py` you will be asked to open an URL and paste the URL you were redirected to to obtain the oAuth token.
+
+## API (using PostgREST)
+
+After running the stack, API will be available at: <http://127.0.0.1:3000/tracks?main_artist=eq.Devlin>
+
+Usage and documentation: <https://postgrest.org/en/stable/api.html#operators>
 
 ## Other
 
 * Test application code: `docker run -ti --rm --network spotify-grabtrack_default -v $(pwd)/app/src:/app --env-file .env --name app spotify-grabtrack_app sh --login`
-* Enter application container `docker run -ti --rm -v $(pwd)/app/src:/app --name app spotify-grabtrack_app sh --login`
+* Enter application container `docker run -ti --rm --network spotify-grabtrack_default -v $(pwd)/app/src:/app --env-file .env spotify-grabtrack_app sh --login`
+* Inside the container `pipenv run python get_followed_artists.py`
