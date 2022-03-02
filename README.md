@@ -36,6 +36,12 @@ After running the stack, API will be available at: <http://127.0.0.1:3000/tracks
 
 Usage and documentation: <https://postgrest.org/en/stable/api.html#operators>
 
+## WWW (working with the web app)
+
+After building the stack, run
+
+* `docker run -ti --rm --network spotify-grabtrack_default -v $(pwd)/www/app:/app --env-file .env --name www spotify-grabtrack_www sh --login` to enter the www container and use `yarn`
+
 ## Other
 
 * Test application code: `docker run -ti --rm --network spotify-grabtrack_default -v $(pwd)/app/src:/app --env-file .env --name app spotify-grabtrack_app sh --login`
