@@ -50,9 +50,13 @@ function App() {
                             label="Min. BPM s"
                         />
                         <label htmlFor="default-remember">
-                            <input type="checkbox" id="default-remember" /> Explicit
+                            <input type="checkbox" id="default-remember" />{" "}
+                            Explicit
                         </label>
-                        <button type="submit" className="pure-button pure-button-primary">
+                        <button
+                            type="submit"
+                            className="pure-button pure-button-primary"
+                        >
                             Search
                         </button>
                     </fieldset>
@@ -65,8 +69,10 @@ function App() {
                             <thead>
                                 <tr>
                                     <th>Play</th>
-                                    <th>Main artist</th>
+                                    {/* <th>Main artist</th> */}
+                                    <th>Artists</th>
                                     <th>Title</th>
+                                    <th>Genres</th>
                                     <th>Release date</th>
                                     <th>Tempo</th>
                                     <th>Key</th>
@@ -78,8 +84,27 @@ function App() {
                                         <td>
                                             <a href={track.preview_url}>PLAY</a>
                                         </td>
-                                        <td>{track.main_artist}</td>
+                                        {/* <td>{track.main_artist}</td> */}
+                                        <td>
+                                            {track.all_artists.map(
+                                                (artist, i) => (
+                                                    <span>
+                                                        {i > 0 && ", "}
+                                                        {artist}
+                                                    </span>
+                                                )
+                                            )}
+                                        </td>
                                         <td>{track.name}</td>
+                                        <td>
+                                            {track.genres.map((genre, i) => (
+                                                <span key={i}>
+                                                    {i > 0 && ", "}
+                                                    {genre}
+                                                </span>
+                                            ))}
+                                        </td>
+
                                         <td>{track.release_date}</td>
                                         <td>{track.tempo}</td>
                                         <td>{track.key}</td>

@@ -42,8 +42,9 @@ Usage and documentation: <https://postgrest.org/en/stable/api.html#operators>
 
 After building the stack, run
 
-- `docker run -ti --rm --network spotify-grabtrack_default -v $(pwd)/www/app/src:/app/src --env-file .env --name www spotify-grabtrack_www sh --login` to enter the www container
+- `docker run -ti --rm --network spotify-grabtrack_default -p 3001:3001 -v $(pwd)/www/app/src:/app/src --env-file .env --name www spotify-grabtrack_www sh --login` to enter the www container
 - `yarn start` to start the web server. On MacOS starting might take >30 seconds due to slow Docker mounts.
+- Open the app in your browser <http://localhost:3001/>
 
 ## Other
 
