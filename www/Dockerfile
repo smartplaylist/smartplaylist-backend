@@ -2,7 +2,7 @@ FROM node:17-alpine3.14
 
 WORKDIR /app
 
-ENV PORT=${PORT:-3001}
+ENV PORT=${APP_PORT:-3001}
 
 ADD ./app/ ./
 

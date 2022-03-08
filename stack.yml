@@ -3,8 +3,10 @@ version: "3.1"
 services:
     www:
         build: ./www
+        ports:
+            - 3001:3001
         depends_on:
-            - server
+            - api
 
     app:
         build: ./app
@@ -49,10 +51,10 @@ services:
             - 15672:15672
             - 5672:5672
 
-    server:
+    api:
         image: postgrest/postgrest
         ports:
-            - "3000:3000"
+            - 3000:3000
         environment:
             PGRST_DB_URI: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db/${POSTGRES_DB-spotify}
             PGRST_DB_SCHEMA: public
