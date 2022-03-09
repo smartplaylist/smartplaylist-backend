@@ -23,7 +23,8 @@ Check the data here: <http://localhost:8080/?pgsql=db&username=postgres&db=spoti
 
 Listeners are checking for Rabbit messages and downloading arist, alubm and track data from Spotify.
 
-1. Get followed artists `docker run -ti --rm --network spotify-grabtrack_default -v $(pwd)/app/src:/app --env-file .env spotify-grabtrack_app pipenv run python get_followed_artists.py`
+1. Get followed artists `docker run -ti --rm --network spotify-grabtrack_default -p 8083:8083 -v $(pwd)/app/src:/app --env-file .env spotify-grabtrack_app pipenv run python get_followed_artists.py`
+1. Run related artists listener: `docker run -ti --rm --network spotify-grabtrack_default -v $(pwd)/app/src:/app --env-file .env spotify-grabtrack_app pipenv run python get_related_artists.py`
 1. Get albums `docker run -ti --rm --network spotify-grabtrack_default -v $(pwd)/app/src:/app --env-file .env spotify-grabtrack_app pipenv run python get_albums.py`
 1. Get album details `docker run -ti --rm --network spotify-grabtrack_default -v $(pwd)/app/src:/app --env-file .env spotify-grabtrack_app pipenv run python get_album_details.py`
 1. Get track details `docker run -ti --rm --network spotify-grabtrack_default -v $(pwd)/app/src:/app --env-file .env spotify-grabtrack_app pipenv run python get_track_details.py`
@@ -31,6 +32,8 @@ Listeners are checking for Rabbit messages and downloading arist, alubm and trac
 ## Get oAuth token
 
 After running `get_followed_artists.py` you will be asked to open an URL and paste the URL you were redirected to to obtain the oAuth token.
+
+Remember, your Spotify Developer application in <https://developer.spotify.com/dashboard/applications> needs to have "Redirect URI" configured and same with `env SPOTIPY_REDIRECT_URI`
 
 ## API (using PostgREST)
 

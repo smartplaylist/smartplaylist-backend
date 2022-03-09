@@ -33,7 +33,7 @@ def main():
     sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials())
     log = logger.get_logger(os.path.basename(__file__))
 
-    cursor.execute("SELECT name, genres, popularity, followers FROM followed_artists")
+    cursor.execute("SELECT name, genres, popularity, followers FROM artists")
     artist_data = {
         artist_genre[0]: [artist_genre[1], artist_genre[2], artist_genre[3]]
         for artist_genre in cursor.fetchall()

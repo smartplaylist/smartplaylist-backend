@@ -52,7 +52,7 @@ def upgrade():
         sa.Column("created_at", sa.TIMESTAMP, nullable=False),
         sa.Column("updated_at", sa.TIMESTAMP, nullable=False),
     )
-    op.create_unique_constraint("uniq_albums_spotify_id", "albums", ["spotify_id"])
+    op.create_unique_constraint("unique_albums_spotify_id", "albums", ["spotify_id"])
 
 
 def downgrade():

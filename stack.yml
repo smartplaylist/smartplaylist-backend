@@ -17,6 +17,7 @@ services:
             POSTGRES_PASSWORD: ${POSTGRES_PASSWORD-example}
             POSTGRES_DB: ${POSTGRES_DB-spotify}
             POSTGRES_HOST: ${POSTGRES_HOST-db}
+            SPOTIPY_REDIRECT_URI: ${SPOTIPY_REDIRECT_URI:-http://127.0.0.1:8083/}
         # volumes:
         # - ./app/src:/app
         ports:
