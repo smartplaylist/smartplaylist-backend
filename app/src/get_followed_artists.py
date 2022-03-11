@@ -34,7 +34,7 @@ def main():
     for i, item in enumerate(artists):
         try:
             cursor.execute(
-                "INSERT INTO artists (spotify_id, name, popularity, followers, genres, genres_string, total_albums, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, 0, now(), now());",
+                "INSERT INTO artists (spotify_id, name, popularity, followers, genres, genres_string, total_albums) VALUES (%s, %s, %s, %s, %s, %s, 0);",
                 (
                     item["id"],
                     item["name"],
@@ -47,7 +47,7 @@ def main():
             channel_albums.basic_publish(
                 exchange="",
                 routing_key=CHANNEL_ALBUMS_NAME,
-                body=json.dumps({"spotify_id": item["id"], "total_tracks": 0}),
+                body=json.dumps({"spotify_id": item["id"], "total_albums": 0}),
             )
             channel_related_artists.basic_publish(
                 exchange="",

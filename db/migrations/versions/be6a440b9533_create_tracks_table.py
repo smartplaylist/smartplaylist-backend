@@ -48,12 +48,31 @@ def upgrade():
         sa.Column("tempo", sa.Float(precision=5), nullable=True),
         sa.Column("time_signature", sa.Integer, nullable=True),
         sa.Column("preview_url", sa.Text, nullable=True),
-        sa.Column("created_at", sa.TIMESTAMP, nullable=False),
-        sa.Column("updated_at", sa.TIMESTAMP, nullable=False),
+        sa.Column(
+            "created_at",
+            sa.TIMESTAMP,
+            nullable=False,
+            server_default=sa.func.current_timestamp(),
+        ),
+        sa.Column(
+            "updated_at",
+            sa.TIMESTAMP,
+            nullable=False,
+            server_default=sa.func.current_timestamp(),
+        ),
     )
 
     op.create_unique_constraint("unique_tracks_spotify_id", "tracks", ["spotify_id"])
 
+    create_trigger = """
+        CREATE TRIGGER set_timestamp
+        BEFORE UPDATE ON tracks
+        FOR EACH ROW
+        EXECUTE PROCEDURE trigger_set_timestamp();
+    """
+    op.execute(create_trigger)
+
 
 def downgrade():
     op.drop_table("tracks")
+    op.execute("DROP TRIGGER set_timestamp ON tracks")

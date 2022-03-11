@@ -15,7 +15,7 @@ def update_album(cursor, data):
     for copyright in data["copyrights"]:
         copyrights.append(copyright["text"])
     cursor.execute(
-        "UPDATE albums SET popularity=%s, label=%s, copyrights=%s, updated_at=now() WHERE spotify_id=%s;",
+        "UPDATE albums SET popularity=%s, label=%s, copyrights=%s WHERE spotify_id=%s;",
         (
             data["popularity"],
             data["label"],
@@ -23,7 +23,6 @@ def update_album(cursor, data):
             data["id"],
         ),
     )
-    print("Aktualizuję album", data["name"], data["id"])
 
 
 def main():
@@ -63,7 +62,7 @@ def main():
 
             try:
                 cursor.execute(
-                    "INSERT INTO tracks (spotify_id, name, main_artist, main_artist_popularity, main_artist_followers, all_artists, release_date, genres, track_number, disc_number, duration_ms, explicit, preview_url, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now(), now());",
+                    "INSERT INTO tracks (spotify_id, name, main_artist, main_artist_popularity, main_artist_followers, all_artists, release_date, genres, track_number, disc_number, duration_ms, explicit, preview_url) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);",
                     (
                         item["id"],
                         item["name"],

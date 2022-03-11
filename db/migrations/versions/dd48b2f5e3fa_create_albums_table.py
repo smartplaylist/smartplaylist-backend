@@ -49,10 +49,28 @@ def upgrade():
             sa.Enum("album", "single", "compilation", name="album_type_enum"),
             nullable=False,
         ),
-        sa.Column("created_at", sa.TIMESTAMP, nullable=False),
-        sa.Column("updated_at", sa.TIMESTAMP, nullable=False),
+        sa.Column(
+            "created_at",
+            sa.TIMESTAMP,
+            nullable=False,
+            server_default=sa.func.current_timestamp(),
+        ),
+        sa.Column(
+            "updated_at",
+            sa.TIMESTAMP,
+            nullable=False,
+            server_default=sa.func.current_timestamp(),
+        ),
     )
     op.create_unique_constraint("unique_albums_spotify_id", "albums", ["spotify_id"])
+
+    create_trigger = """
+        CREATE TRIGGER set_timestamp
+        BEFORE UPDATE ON albums
+        FOR EACH ROW
+        EXECUTE PROCEDURE trigger_set_timestamp();
+    """
+    op.execute(create_trigger)
 
 
 def downgrade():
@@ -60,3 +78,4 @@ def downgrade():
     op.execute("DROP TYPE album_group_enum")
     op.execute("DROP TYPE album_type_enum")
     op.execute("DROP TYPE release_date_precision_enum")
+    op.execute("DROP TRIGGER set_timestamp ON albums")
