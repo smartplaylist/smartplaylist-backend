@@ -46,28 +46,6 @@ def upgrade():
 
     op.create_unique_constraint("unique_artists_spotify_id", "artists", ["spotify_id"])
 
-    # Create the function to be triggered to automatically set updated_at with now() on every UPDATE
-    create_function = """
-        CREATE OR REPLACE FUNCTION trigger_set_timestamp()
-        RETURNS TRIGGER AS $$
-        BEGIN
-            NEW.updated_at = NOW();
-            RETURN NEW;
-        END;
-        $$ LANGUAGE plpgsql;
-    """
-    op.execute(create_function)
-
-    create_trigger = """
-        CREATE TRIGGER set_timestamp
-        BEFORE UPDATE ON artists
-        FOR EACH ROW
-        EXECUTE PROCEDURE trigger_set_timestamp();
-    """
-    op.execute(create_trigger)
-
 
 def downgrade():
     op.drop_table("artists")
-    op.execute("DROP FUNCTION trigger_set_timestamp")
-    op.execute("DROP TRIGGER set_timestamp ON artists")

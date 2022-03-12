@@ -1,10 +1,14 @@
 import json
 import os
+import sys
+
+import psycopg2.errors
 import spotipy
 from spotipy.oauth2 import SpotifyPKCE
+from structlog import get_logger
+
 import imports.broker as broker
 import imports.db as db
-import imports.logger as logger
 
 
 CHANNEL_ALBUMS_NAME = "artists"
@@ -20,7 +24,7 @@ def main():
     sp = spotipy.Spotify(
         auth_manager=SpotifyPKCE(scope=SPOTIFY_SCOPE, open_browser=False)
     )
-    log = logger.get_logger(os.path.basename(__file__))
+    log = get_logger(os.path.basename(__file__))
 
     results = sp.current_user_followed_artists(limit=50)
     artists = results["artists"]["items"]
@@ -54,10 +58,16 @@ def main():
                 routing_key=CHANNEL_RELATED_ARTISTS_NAME,
                 body=json.dumps({"spotify_id": item["id"], "name": item["name"]}),
             )
+        except psycopg2.errors.UniqueViolation as e:
+            log.info(
+                "👨🏽‍🎤 Artist exists", id=item["id"], name=item["name"], status="skipped"
+            )
         except Exception as e:
-            log.error("id: %s (%s)" % (item["id"], str(e).replace("\n", " ")))
+            log.exception("Unhandled exception")
         else:
-            log.info(f"Saved id: {item['id']}")
+            log.info(
+                "👨🏽‍🎤 Artist saved", id=item["id"], name=item["name"], status="saved"
+            )
 
     # Clean up and close connections
     broker.close_connection()
@@ -65,4 +75,11 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("Interrupted")
+        try:
+            sys.exit(0)
+        except SystemExit:
+            os._exit(0)

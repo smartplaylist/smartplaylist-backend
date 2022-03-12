@@ -2,12 +2,14 @@ from datetime import date
 import json
 import os
 import sys
+
+import psycopg2.errors
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
+from structlog import get_logger
 
 import imports.broker as broker
 import imports.db as db
-import imports.logger as logger
 
 
 SPOTIFY_MARKET = os.environ["SPOTIFY_MARKET"]
@@ -20,7 +22,7 @@ def main():
     publish_channel = broker.create_channel(WRITING_QUEUE_NAME)
     db_connection, cursor = db.init_connection()
     sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials())
-    log = logger.get_logger(os.path.basename(__file__))
+    log = get_logger(os.path.basename(__file__))
 
     def callback(ch, method, properties, body):
         """Handle received artist's id from the queue"""
@@ -37,13 +39,13 @@ def main():
         )
 
         if total_albums >= results["total"]:
-            log.info(f"No new albums for artist: {id}")
+            log.info("No new albums", id=id)
             ch.basic_ack(method.delivery_tag)
             return
 
-        log.info(
-            "{} new albums for artist: {}".format(results["total"] - total_albums, id)
-        )
+        new_albums = results["total"] - total_albums
+
+        log.info("👨🏽‍🎤 New releases", id=id, albums_count=new_albums)
 
         # We need to do make several requests since data is sorted by albumy type
         # and then by release date
@@ -53,24 +55,23 @@ def main():
             results = sp.next(results)
             items.extend(results["items"])
 
-        # Don't filter albums here, since we already requested them
-        # Save to DB, and we will filter it later when getting tracks
-        # Or filter it before putting it into Rabbit (so get_track_details.py doesn't get that logic)
-        # items = filter(
-        #     lambda x: x["release_date"] >= "2020",
-        #     items,
-        # )
-
-        """
-        Update total_albums for the artist here?
-        What if it breaks while adding albums, and not all are saved, and the next run
-        """
-
         # Update total albums for the current artist
-        cursor.execute(
-            "UPDATE artists SET total_albums=%s, last_update=%s WHERE spotify_id=%s;",
-            (results["total"], date.today(), id),
-        )
+        # Even though we might not store all those albums
+        # It is used for determining if there are new releases in Spotify's database
+        try:
+            cursor.execute(
+                "UPDATE artists SET total_albums=%s, last_update=%s WHERE spotify_id=%s;",
+                (results["total"], date.today(), id),
+            )
+        except Exception as e:
+            log.exception("Unhandled exception")
+        else:
+            log.info(
+                "👨🏽‍🎤 Updated total albums",
+                id=id,
+                total_albums=results["total"],
+                prev_total_albums=total_albums,
+            )
 
         for i, item in enumerate(items):
             artists = []
@@ -91,11 +92,26 @@ def main():
                         item["total_tracks"],
                     ),
                 )
+            except psycopg2.errors.UniqueViolation as e:
+                log.info(
+                    "💿 Album exists",
+                    id=item["id"],
+                    name=item["name"],
+                    main_artist=artists[0],
+                    number=i + 1,
+                    status="skipped",
+                )
             except Exception as e:
-                # Not error here, but info that the album already exists.
-                log.error("id: %s (%s)" % (item["id"], str(e).replace("\n", " ")))
+                log.exception("Unhandled exception")
             else:
-                log.info(f"Saved id: {item['id']}")
+                log.info(
+                    "💿 Album saved",
+                    id=item["id"],
+                    name=item["name"],
+                    main_artist=artists[0],
+                    number=i + 1,
+                    status="saved",
+                )
                 # Only get details for albums newer and released in 2020
                 # Should this be here? Where should I filter this?
                 if item["release_date"] >= "2020":

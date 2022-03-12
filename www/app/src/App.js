@@ -6,7 +6,7 @@ function App() {
 
     const fetchData = (query) => {
         fetch(
-            `http://127.0.0.1:3000/tracks?select=all_artists,name,genres,release_date,tempo,key?limit=100&tempo=lt.140&tempo=gt.120&or=(name.ilike.*${query}*,main_artist.ilike.*${query}*)`
+            `http://127.0.0.1:3000/tracks?select=all_artists,name,genres,release_date,tempo,key,preview_url?limit=100&tempo=lt.140&tempo=gt.120&or=(name.ilike.*${query}*,main_artist.ilike.*${query}*)`
         )
             .then((response) => {
                 return response.json();

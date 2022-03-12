@@ -63,14 +63,11 @@ def upgrade():
         ),
     )
     op.create_unique_constraint("unique_albums_spotify_id", "albums", ["spotify_id"])
-
-    create_trigger = """
-        CREATE TRIGGER set_timestamp
-        BEFORE UPDATE ON albums
-        FOR EACH ROW
-        EXECUTE PROCEDURE trigger_set_timestamp();
-    """
-    op.execute(create_trigger)
+    op.create_unique_constraint(
+        "unique_albums_main_artist_name_total_tracks",
+        "albums",
+        ["main_artist", "name", "total_tracks"],
+    )
 
 
 def downgrade():
@@ -78,4 +75,3 @@ def downgrade():
     op.execute("DROP TYPE album_group_enum")
     op.execute("DROP TYPE album_type_enum")
     op.execute("DROP TYPE release_date_precision_enum")
-    op.execute("DROP TRIGGER set_timestamp ON albums")

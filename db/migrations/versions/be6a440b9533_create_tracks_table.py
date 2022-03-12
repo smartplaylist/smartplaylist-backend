@@ -28,8 +28,10 @@ def upgrade():
         sa.Column(
             "all_artists", sa.dialects.postgresql.ARRAY(sa.String()), nullable=False
         ),
+        sa.Column("all_artists_string", sa.Text, nullable=True),
         sa.Column("release_date", sa.Text, nullable=False),
         sa.Column("genres", sa.dialects.postgresql.ARRAY(sa.String()), nullable=True),
+        sa.Column("genres_string", sa.Text, nullable=True),
         sa.Column("popularity", sa.Integer, nullable=True),
         sa.Column("track_number", sa.Integer, nullable=False),
         sa.Column("disc_number", sa.Integer, nullable=False),
@@ -63,16 +65,12 @@ def upgrade():
     )
 
     op.create_unique_constraint("unique_tracks_spotify_id", "tracks", ["spotify_id"])
-
-    create_trigger = """
-        CREATE TRIGGER set_timestamp
-        BEFORE UPDATE ON tracks
-        FOR EACH ROW
-        EXECUTE PROCEDURE trigger_set_timestamp();
-    """
-    op.execute(create_trigger)
+    op.create_unique_constraint(
+        "unique_tracks_main_artist_name_duration",
+        "tracks",
+        ["main_artist", "name", "duration_ms"],
+    )
 
 
 def downgrade():
     op.drop_table("tracks")
-    op.execute("DROP TRIGGER set_timestamp ON tracks")

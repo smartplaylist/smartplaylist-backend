@@ -1,11 +1,14 @@
 import json
 import os
 import sys
+
+import psycopg2.errors
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
+from structlog import get_logger
+
 import imports.broker as broker
 import imports.db as db
-import imports.logger as logger
 
 
 CHANNEL_RELATED_ARTISTS_NAME = "related_artists"
@@ -17,7 +20,7 @@ def main():
     channel_albums = broker.create_channel(CHANNEL_ALBUMS_NAME)
     db_connection, cursor = db.init_connection()
     sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials())
-    log = logger.get_logger(os.path.basename(__file__))
+    log = get_logger(os.path.basename(__file__))
 
     def callback(ch, method, properties, body):
         message = json.loads(body.decode())
@@ -45,10 +48,22 @@ def main():
                     body=json.dumps({"spotify_id": item["id"], "total_albums": 0}),
                 )
 
+            except psycopg2.errors.UniqueViolation as e:
+                log.info(
+                    "👨🏽‍🎤 Artist exists",
+                    id=item["id"],
+                    name=item["name"],
+                    status="skipped",
+                )
             except Exception as e:
-                log.error("id: %s (%s)" % (item["id"], str(e).replace("\n", " ")))
+                log.exception("Unhandled exception")
             else:
-                log.info(f"Saved id: {item['id']}")
+                log.info(
+                    "👨🏽‍🎤 Artist saved",
+                    id=item["id"],
+                    name=item["name"],
+                    status="saved",
+                )
 
         ch.basic_ack(method.delivery_tag)
 
