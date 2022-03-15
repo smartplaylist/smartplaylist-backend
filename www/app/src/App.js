@@ -20,7 +20,7 @@ class App extends React.Component {
                 maxTempo: "139",
                 genres: "",
                 explicit: "checked",
-                key: "0",
+                key: "any",
             },
             tracks: [],
         };
@@ -51,7 +51,8 @@ class App extends React.Component {
         url += `&or=(name.ilike.*${this.state.form.query}*,main_artist.ilike.*${this.state.form.query}*)`;
         url += `&genres_string=ilike.*${this.state.form.genres}*`;
         url += `&release_date=gte.${this.state.form.releaseDate}`;
-        url += `&key=eq.${this.state.form.key}`;
+        if (this.state.form.key !== "any")
+            url += `&key=eq.${this.state.form.key}`;
 
         fetch(url)
             .then((response) => {

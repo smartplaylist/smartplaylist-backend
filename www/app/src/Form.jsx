@@ -70,6 +70,7 @@ class Form extends React.Component {
                         label="Key"
                         value={this.props.values.key}
                     >
+                        <option value="any">Any</option>
                         <option value="0">C</option>
                         <option value="1">C♯</option>
                         <option value="2">D</option>
