@@ -22,6 +22,13 @@ def main():
     def callback(ch, method, properties, body):
 
         track_id = body.decode()
+
+        log.info(
+            "🔉 Processing",
+            id=track_id,
+            status="updated",
+        )
+
         # Iterate over results to get the full list
         result = sp.track(track_id=track_id)
         track_popularity = result["popularity"]
