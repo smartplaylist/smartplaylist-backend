@@ -9,12 +9,12 @@ const TrackList = (props) => (
                     <tr>
                         <th>#</th>
                         <th>Play</th>
-                        {/* <th>Main artist</th> */}
                         <th>Artists</th>
                         <th>Title</th>
                         <th>Genres</th>
                         <th>Release date</th>
                         <th>Tempo</th>
+                        <th>Popularity</th>
                         <th>Key</th>
                     </tr>
                 </thead>
@@ -25,7 +25,6 @@ const TrackList = (props) => (
                             <td>
                                 <a href={track.preview_url}>PLAY</a>
                             </td>
-                            {/* <td>{track.main_artist}</td> */}
                             <td>
                                 {track.all_artists.map((artist, i) => (
                                     <span key={i}>
@@ -46,6 +45,7 @@ const TrackList = (props) => (
 
                             <td>{track.release_date}</td>
                             <td>{track.tempo}</td>
+                            <td>{track.popularity}</td>
                             <td>{track.key}</td>
                         </tr>
                     ))}

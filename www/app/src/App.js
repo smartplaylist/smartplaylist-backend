@@ -18,6 +18,8 @@ class App extends React.Component {
                 releaseDate: this.getDefaultRealeaseDate(),
                 minTempo: "121",
                 maxTempo: "139",
+                minPopularity: "0",
+                maxPopularity: "100",
                 genres: "",
                 explicit: "checked",
                 key: "any",
@@ -44,11 +46,13 @@ class App extends React.Component {
 
         let url = HOST;
         url += `/tracks`;
-        url += `?select=spotify_id,all_artists,name,genres,release_date,tempo,key,preview_url`;
-        url += `&order=release_date.desc,spotify_id.asc`;
+        url += `?select=spotify_id,all_artists,name,genres,release_date,tempo,popularity,key,preview_url`;
+        url += `&order=release_date.desc,popularity.desc,spotify_id.asc`;
         url += `&limit=${LIMIT}`;
-        url += `&tempo=gt.${this.state.form.minTempo}&tempo=lt.${this.state.form.maxTempo}`;
-        url += `&or=(name.ilike.*${this.state.form.query}*,main_artist.ilike.*${this.state.form.query}*)`;
+        url += `&tempo=gte.${this.state.form.minTempo}&tempo=lte.${this.state.form.maxTempo}`;
+        url += `&popularity=gte.${this.state.form.minPopularity}&popularity=lte.${this.state.form.maxPopularity}`;
+        url += `&or=(name.ilike.*${this.state.form.query}*,all_artists_string.ilike.*${this.state.form.query}*)`;
+        // TODO: Split genres by space and do like=part1 or like=part2 or ...
         url += `&genres_string=ilike.*${this.state.form.genres}*`;
         url += `&release_date=gte.${this.state.form.releaseDate}`;
         if (this.state.form.key !== "any")

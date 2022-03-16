@@ -26,7 +26,6 @@ def main():
         log.info(
             "🔉 Processing",
             id=track_id,
-            status="updated",
         )
 
         # Iterate over results to get the full list
