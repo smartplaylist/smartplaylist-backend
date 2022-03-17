@@ -1,78 +1,79 @@
 import React from "react";
+import MinMaxFilter from "./MinMaxFilter";
 
-class Form extends React.Component {
+export default class Form extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.minMaxFilters = [
+            {
+                name: "MainArtistPopularity",
+                label: "Main artist popularity",
+                minValue: this.props.values.minMainArtistPopularity,
+                maxValue: this.props.values.maxMainArtistPopularity,
+            },
+            {
+                name: "Tempo",
+                label: "Tempo (BPM)",
+                minValue: this.props.values.minTempo,
+                maxValue: this.props.values.maxTempo,
+            },
+            {
+                name: "Popularity",
+                label: "Track popularity",
+                minValue: this.props.values.minPopularity,
+                maxValue: this.props.values.maxPopularity,
+            },
+        ];
+    }
+
     render() {
         return (
             <form className="pure-form" id="form" autoComplete="off">
                 <fieldset>
-                    <legend>Search for tracks</legend>
-                    <label htmlFor="input">Artist or title</label>
-                    <input
-                        type="text"
-                        id="query"
-                        name="query"
-                        onChange={this.props.handler}
-                        value={this.props.values.query}
-                    />
-                    <label htmlFor="genres">Genres</label>
-                    <input
-                        type="text"
-                        id="genres"
-                        name="genres"
-                        onChange={(e) => this.props.handler(e)}
-                        value={this.props.values.genres}
-                    />
-                    <label htmlFor="releaseDate">Released</label>
-                    <input
-                        type="date"
-                        id="releaseDate"
-                        name="releaseDate"
-                        onChange={(e) => this.props.handler(e)}
-                        value={this.props.values.releaseDate}
-                    />
-                    <br />
-                    <span>Tempo </span>
-                    <label htmlFor="minTempo">min</label>
-                    <input
-                        type="number"
-                        id="minTempo"
-                        name="minTempo"
-                        onChange={(e) => this.props.handler(e)}
-                        value={this.props.values.minTempo}
-                    />
-                    <label htmlFor="maxTempo">max</label>
-                    <input
-                        type="number"
-                        id="maxTempo"
-                        name="maxTempo"
-                        onChange={(e) => this.props.handler(e)}
-                        value={this.props.values.maxTempo}
-                    />
-                    <br />
-                    <span>Song popularity </span>
-                    <label htmlFor="minPopularity">min</label>
-                    <input
-                        type="number"
-                        id="minPopularity"
-                        name="minPopularity"
-                        onChange={(e) => this.props.handler(e)}
-                        value={this.props.values.minPopularity}
-                    />
-                    <label htmlFor="maxTempo">max</label>
-                    <input
-                        type="number"
-                        id="maxPopularity"
-                        name="maxPopularity"
-                        onChange={(e) => this.props.handler(e)}
-                        value={this.props.values.maxPopularity}
-                    />
-                    <br />
+                    <div className="filter">
+                        <legend>Search for tracks</legend>
+                        <label htmlFor="input">Artist or title</label>
+                        <input
+                            type="text"
+                            id="query"
+                            name="query"
+                            onChange={this.props.handler}
+                            value={this.props.values.query}
+                        />
+                        <label htmlFor="genres">Genres</label>
+                        <input
+                            type="text"
+                            id="genres"
+                            name="genres"
+                            onChange={this.props.handler}
+                            value={this.props.values.genres}
+                        />
+                        <label htmlFor="releaseDate">Released</label>
+                        <input
+                            type="date"
+                            id="releaseDate"
+                            name="releaseDate"
+                            onChange={this.props.handler}
+                            value={this.props.values.releaseDate}
+                        />
+                    </div>
 
+                    {this.minMaxFilters.map((filter, i) => (
+                        <MinMaxFilter
+                            label={filter.label}
+                            name={filter.name}
+                            minValue={filter.minValue}
+                            maxValue={filter.maxValue}
+                            key={filter.name + "-" + i}
+                            handler={this.props.handler}
+                        />
+                    ))}
                     <label htmlFor="key">Key</label>
                     <select
                         id="key"
                         name="key"
-                        onChange={(e) => this.props.handler(e)}
+                        onChange={this.props.handler}
                         label="Key"
                         value={this.props.values.key}
                     >
@@ -95,7 +96,7 @@ class Form extends React.Component {
                         type="checkbox"
                         id="explicit"
                         name="explicit"
-                        onChange={(e) => this.props.handler(e)}
+                        onChange={this.props.handler}
                         value={this.props.values.explicit}
                     />
                 </fieldset>
@@ -103,5 +104,3 @@ class Form extends React.Component {
         );
     }
 }
-
-export default Form;

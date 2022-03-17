@@ -3,8 +3,6 @@ import React, { useEffect, useState } from "react";
 import TrackList from "./TrackList";
 import Form from "./Form";
 
-const DEFAULT_RELEASED_MONTHS_AGO = 3;
-
 class App extends React.Component {
     constructor(props) {
         super(props);
@@ -15,7 +13,7 @@ class App extends React.Component {
         this.state = {
             form: {
                 query: "",
-                releaseDate: this.getDefaultRealeaseDate(),
+                releaseDate: "2022-01-01",
                 minTempo: "121",
                 maxTempo: "139",
                 minPopularity: "0",
@@ -23,22 +21,12 @@ class App extends React.Component {
                 genres: "",
                 explicit: "checked",
                 key: "any",
+                minMainArtistPopularity: 18,
+                maxMainArtistPopularity: 89,
             },
             tracks: [],
         };
     }
-
-    getDefaultRealeaseDate = () => {
-        let released = new Date();
-        released.setMonth(released.getMonth() - DEFAULT_RELEASED_MONTHS_AGO);
-        return (
-            released.getFullYear() +
-            "-" +
-            released.getMonth() +
-            "-" +
-            released.getDate()
-        );
-    };
 
     fetchData() {
         const HOST = `http://127.0.0.1:3000`;
@@ -46,11 +34,12 @@ class App extends React.Component {
 
         let url = HOST;
         url += `/tracks`;
-        url += `?select=spotify_id,all_artists,name,genres,release_date,tempo,popularity,key,preview_url`;
+        url += `?select=spotify_id,all_artists,name,genres,release_date,tempo,popularity,main_artist_popularity,key,preview_url`;
         url += `&order=release_date.desc,popularity.desc,spotify_id.asc`;
         url += `&limit=${LIMIT}`;
         url += `&tempo=gte.${this.state.form.minTempo}&tempo=lte.${this.state.form.maxTempo}`;
         url += `&popularity=gte.${this.state.form.minPopularity}&popularity=lte.${this.state.form.maxPopularity}`;
+        url += `&main_artist_popularity=gte.${this.state.form.minMainArtistPopularity}&main_artist_popularity=lte.${this.state.form.maxMainArtistPopularity}`;
         url += `&or=(name.ilike.*${this.state.form.query}*,all_artists_string.ilike.*${this.state.form.query}*)`;
         // TODO: Split genres by space and do like=part1 or like=part2 or ...
         url += `&genres_string=ilike.*${this.state.form.genres}*`;
@@ -81,6 +70,7 @@ class App extends React.Component {
 
     // Update state based on form's elements and their name
     handleFormChange(e) {
+        console.log(e.target.name, e.target.value);
         this.setState((s) => ({
             form: {
                 ...s.form,

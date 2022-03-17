@@ -15,6 +15,7 @@ const TrackList = (props) => (
                         <th>Release date</th>
                         <th>Tempo</th>
                         <th>Popularity</th>
+                        <th>Main artist popularity</th>
                         <th>Key</th>
                     </tr>
                 </thead>
@@ -46,6 +47,7 @@ const TrackList = (props) => (
                             <td>{track.release_date}</td>
                             <td>{track.tempo}</td>
                             <td>{track.popularity}</td>
+                            <td>{track.main_artist_popularity}</td>
                             <td>{track.key}</td>
                         </tr>
                     ))}
