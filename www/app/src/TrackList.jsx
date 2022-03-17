@@ -1,4 +1,5 @@
 import React from "react";
+import TrackKey from "./TrackKey";
 
 const TrackList = (props) => (
     <div id="tracks">
@@ -48,7 +49,9 @@ const TrackList = (props) => (
                             <td>{track.tempo}</td>
                             <td>{track.popularity}</td>
                             <td>{track.main_artist_popularity}</td>
-                            <td>{track.key}</td>
+                            <td>
+                                <TrackKey trackKey={track.key} />
+                            </td>
                         </tr>
                     ))}
                 </tbody>
