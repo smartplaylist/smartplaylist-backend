@@ -32,7 +32,7 @@ export default class Form extends React.Component {
             <form className="pure-form" id="form" autoComplete="off">
                 <fieldset>
                     <div className="filter">
-                        <legend>Search for tracks</legend>
+                        {/* <legend>Search for tracks</legend> */}
                         <label htmlFor="input">Artist or title</label>
                         <input
                             type="text"
@@ -49,7 +49,7 @@ export default class Form extends React.Component {
                             onChange={this.props.handler}
                             value={this.props.values.genres}
                         />
-                        <label htmlFor="releaseDate">Released</label>
+                        <label htmlFor="releaseDate">Released after</label>
                         <input
                             type="date"
                             id="releaseDate"

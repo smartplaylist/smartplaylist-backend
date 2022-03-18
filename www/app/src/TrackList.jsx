@@ -1,5 +1,6 @@
 import React from "react";
 import TrackKey from "./TrackKey";
+import ReactPlayer from "react-player/lazy";
 
 const TrackList = (props) => (
     <div id="tracks">
@@ -25,7 +26,14 @@ const TrackList = (props) => (
                         <tr key={track.spotify_id}>
                             <td>{i + 1}</td>
                             <td>
-                                <a href={track.preview_url}>PLAY</a>
+                                <ReactPlayer
+                                    url={track.preview_url}
+                                    width="240px"
+                                    height="20px"
+                                    playing={false}
+                                    controls={true}
+                                    volume={0.05}
+                                />
                             </td>
                             <td>
                                 {track.all_artists.map((artist, i) => (
