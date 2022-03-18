@@ -1,6 +1,13 @@
 import React from "react";
 
 export default class MinMaxFilter extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            showColumn: this.props.showColumn,
+        };
+    }
     render() {
         return (
             <div id={"min-max-filter-" + this.props.name} className="filter">
@@ -27,6 +34,21 @@ export default class MinMaxFilter extends React.Component {
                     // but when maxValue state is changed in other place, the change
                     // will not be reflected in this field.
                     defaultValue={this.props.maxValue}
+                />
+                <label htmlFor={"showColumn" + this.props.name}>
+                    Show column
+                </label>
+                <input
+                    type="checkbox"
+                    id={"showColumn" + this.props.name}
+                    name={"showColumn" + this.props.name}
+                    // TODO: checked is different from value. Currently it's the opposite
+                    onChange={(e) => {
+                        e.target.value = this.state.showColumn;
+                        this.setState({ showColumn: !this.state.showColumn });
+                        this.props.handler(e);
+                    }}
+                    checked={this.state.showColumn}
                 />
             </div>
         );

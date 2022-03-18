@@ -15,9 +15,15 @@ const TrackList = (props) => (
                         <th>Title</th>
                         <th>Genres</th>
                         <th>Release date</th>
-                        <th>Tempo</th>
-                        <th>Popularity</th>
-                        <th>Main artist popularity</th>
+
+                        {props.values.showColumnTempo !== "true" && (
+                            <th>Tempo</th>
+                        )}
+                        {props.values.showColumnPopularity !== "true" && (
+                            <th>Popularity</th>
+                        )}
+                        {props.values.showColumnMainArtistPopularity !==
+                            "true" && <th>Main artist popularity</th>}
                         <th>Key</th>
                     </tr>
                 </thead>
@@ -54,9 +60,16 @@ const TrackList = (props) => (
                             </td>
 
                             <td>{track.release_date}</td>
-                            <td>{track.tempo}</td>
-                            <td>{track.popularity}</td>
-                            <td>{track.main_artist_popularity}</td>
+                            {props.values.showColumnTempo !== "true" && (
+                                <td>{track.tempo}</td>
+                            )}
+                            {props.values.showColumnPopularity !== "true" && (
+                                <td>{track.popularity}</td>
+                            )}
+                            {props.values.showColumnMainArtistPopularity !==
+                                "true" && (
+                                <td>{track.main_artist_popularity}</td>
+                            )}
                             <td>
                                 <TrackKey trackKey={track.key} />
                             </td>

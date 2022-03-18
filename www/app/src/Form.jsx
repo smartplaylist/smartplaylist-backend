@@ -7,22 +7,25 @@ export default class Form extends React.Component {
 
         this.minMaxFilters = [
             {
-                name: "MainArtistPopularity",
-                label: "Main artist popularity",
-                minValue: this.props.values.minMainArtistPopularity,
-                maxValue: this.props.values.maxMainArtistPopularity,
-            },
-            {
                 name: "Tempo",
                 label: "Tempo (BPM)",
                 minValue: this.props.values.minTempo,
                 maxValue: this.props.values.maxTempo,
+                showColumn: this.props.values.showColumnTempo,
+            },
+            {
+                name: "MainArtistPopularity",
+                label: "Main artist popularity",
+                minValue: this.props.values.minMainArtistPopularity,
+                maxValue: this.props.values.maxMainArtistPopularity,
+                showColumn: this.props.values.showColumnMainArtistPopularity,
             },
             {
                 name: "Popularity",
                 label: "Track popularity",
                 minValue: this.props.values.minPopularity,
                 maxValue: this.props.values.maxPopularity,
+                showColumn: this.props.values.showColumnPopularity,
             },
         ];
     }
@@ -65,6 +68,7 @@ export default class Form extends React.Component {
                             name={filter.name}
                             minValue={filter.minValue}
                             maxValue={filter.maxValue}
+                            showColumn={filter.showColumn}
                             key={filter.name + "-" + i}
                             handler={this.props.handler}
                         />

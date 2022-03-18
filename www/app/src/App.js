@@ -13,16 +13,23 @@ class App extends React.Component {
         this.state = {
             form: {
                 query: "",
-                releaseDate: "2022-01-01",
-                minTempo: "121",
-                maxTempo: "139",
-                minPopularity: "0",
-                maxPopularity: "100",
                 genres: "",
-                explicit: "checked",
-                key: "any",
+                releaseDate: "2022-01-01",
+
+                minTempo: 121,
+                maxTempo: 139,
+                showColumnTempo: true,
+
+                minPopularity: 0,
+                maxPopularity: 100,
+                showColumnPopularity: true,
+
                 minMainArtistPopularity: 18,
                 maxMainArtistPopularity: 89,
+                showColumnMainArtistPopularity: true,
+
+                explicit: "checked",
+                key: "any",
             },
             tracks: [],
         };
@@ -70,7 +77,6 @@ class App extends React.Component {
 
     // Update state based on form's elements and their name
     handleFormChange(e) {
-        console.log(e.target.name, e.target.value);
         this.setState((s) => ({
             form: {
                 ...s.form,
@@ -90,7 +96,10 @@ class App extends React.Component {
                         handler={this.handleFormChange}
                         values={this.state.form}
                     />
-                    <TrackList tracks={this.state.tracks} />
+                    <TrackList
+                        tracks={this.state.tracks}
+                        values={this.state.form}
+                    />
                 </div>
             </div>
         );
