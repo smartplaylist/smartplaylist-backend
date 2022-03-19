@@ -1,6 +1,7 @@
 import React from "react";
-import TrackKey from "./TrackKey";
 import ReactPlayer from "react-player/lazy";
+import TrackKey from "./TrackKey";
+import "./TrackList.css";
 
 const TrackList = (props) => (
     <div id="tracks">
@@ -16,13 +17,13 @@ const TrackList = (props) => (
                         <th>Genres</th>
                         <th>Release date</th>
 
-                        {props.values.showColumnTempo !== "true" && (
-                            <th>Tempo</th>
+                        {props.values.showColumnTempo === "true" && (
+                            <th>Tempo (bpm)</th>
                         )}
-                        {props.values.showColumnPopularity !== "true" && (
-                            <th>Popularity</th>
+                        {props.values.showColumnPopularity === "true" && (
+                            <th>Track popularity</th>
                         )}
-                        {props.values.showColumnMainArtistPopularity !==
+                        {props.values.showColumnMainArtistPopularity ===
                             "true" && <th>Main artist popularity</th>}
                         <th>Key</th>
                     </tr>
@@ -60,13 +61,13 @@ const TrackList = (props) => (
                             </td>
 
                             <td>{track.release_date}</td>
-                            {props.values.showColumnTempo !== "true" && (
+                            {props.values.showColumnTempo === "true" && (
                                 <td>{track.tempo}</td>
                             )}
-                            {props.values.showColumnPopularity !== "true" && (
+                            {props.values.showColumnPopularity === "true" && (
                                 <td>{track.popularity}</td>
                             )}
-                            {props.values.showColumnMainArtistPopularity !==
+                            {props.values.showColumnMainArtistPopularity ===
                                 "true" && (
                                 <td>{track.main_artist_popularity}</td>
                             )}

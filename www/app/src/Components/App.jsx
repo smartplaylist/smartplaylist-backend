@@ -1,5 +1,5 @@
 import "./App.css";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import TrackList from "./TrackList";
 import Form from "./Form";
 
@@ -8,7 +8,6 @@ class App extends React.Component {
         super(props);
 
         this.handleFormChange = this.handleFormChange.bind(this);
-        // this.fetchData = this.fetchData.bind(this);
 
         this.state = {
             form: {
@@ -18,15 +17,15 @@ class App extends React.Component {
 
                 minTempo: 121,
                 maxTempo: 139,
-                showColumnTempo: true,
+                showColumnTempo: "true",
 
                 minPopularity: 0,
                 maxPopularity: 100,
-                showColumnPopularity: true,
+                showColumnPopularity: "true",
 
                 minMainArtistPopularity: 18,
                 maxMainArtistPopularity: 89,
-                showColumnMainArtistPopularity: true,
+                showColumnMainArtistPopularity: "true",
 
                 explicit: "checked",
                 key: "any",
@@ -77,6 +76,7 @@ class App extends React.Component {
 
     // Update state based on form's elements and their name
     handleFormChange(e) {
+        console.log(e.target.name, e.target.value);
         this.setState((s) => ({
             form: {
                 ...s.form,
