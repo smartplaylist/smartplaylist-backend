@@ -1,5 +1,6 @@
 import React from "react";
 import MinMaxFilter from "./MinMaxFilter";
+import "./Form.css";
 
 export default class Form extends React.Component {
     constructor(props) {

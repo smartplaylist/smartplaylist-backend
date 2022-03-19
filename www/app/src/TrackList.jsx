@@ -1,6 +1,7 @@
 import React from "react";
-import TrackKey from "./TrackKey";
 import ReactPlayer from "react-player/lazy";
+import TrackKey from "./TrackKey";
+import "./TrackList.css";
 
 const TrackList = (props) => (
     <div id="tracks">
