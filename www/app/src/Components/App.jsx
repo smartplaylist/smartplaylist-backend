@@ -1,9 +1,7 @@
 import "./App.css";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import TrackList from "./TrackList";
 import Form from "./Form";
-
-// przerobic App na functional
 
 class App extends React.Component {
     constructor(props) {
