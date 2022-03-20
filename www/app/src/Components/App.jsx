@@ -95,9 +95,23 @@ function App() {
         url += `&instrumentalness=gte.${form.minInstrumentalness}&instrumentalness=lte.${form.maxInstrumentalness}`;
         url += `&liveness=gte.${form.minLiveness}&liveness=lte.${form.maxLiveness}`;
         url += `&valence=gte.${form.minValence}&valence=lte.${form.maxValence}`;
-        url += `&or=(name.ilike.*${form.query}*,all_artists_string.ilike.*${form.query}*)`;
-        // TODO: Split genres by space and do like=part1 or like=part2 or ...
-        url += `&genres_string=ilike.*${form.genres}*`;
+
+        const searchQuery = form.query.trim().replace(/\s\s+/g, " ").split(" ");
+        searchQuery.forEach((element) => {
+            url += `&or=(name.ilike.*${element}*,all_artists_string.ilike.*${element}*)`;
+        });
+
+        const genresQuery = form.genres
+            .trim()
+            .replace(/\s\s+/g, " ")
+            .split(" ");
+        // Use `or` or `and` depending on the logic you need (genre has any or all of the strings)
+        url += `&or=(`;
+        genresQuery.forEach((element) => {
+            url += `genres_string.ilike.*${element}*,`;
+        });
+        url = url.slice(0, -1);
+        url += `)`;
         url += `&release_date=gte.${form.releaseDate}`;
         if (form.key !== "any") url += `&key=eq.${form.key}`;
 
