@@ -43,7 +43,7 @@ const MinMaxFilter = (props) => {
                     setShowColumn(!showColumn);
                     props.handler(e);
                 }}
-                checked={showColumn}
+                defaultChecked={showColumn}
             />
         </div>
     );

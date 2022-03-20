@@ -25,6 +25,55 @@ function Form(props) {
             maxValue: props.values.maxMainArtistPopularity,
             showColumn: props.values.showColumnMainArtistPopularity,
         },
+        {
+            name: "Danceability",
+            label: "Danceability",
+            minValue: props.values.minDanceability,
+            maxValue: props.values.maxDanceability,
+            showColumn: props.values.showColumnDanceability,
+        },
+        {
+            name: "Energy",
+            label: "Energy",
+            minValue: props.values.minEnergy,
+            maxValue: props.values.maxEnergy,
+            showColumn: props.values.showColumnEnergy,
+        },
+        {
+            name: "Speechiness",
+            label: "Speechiness",
+            minValue: props.values.minSpeechiness,
+            maxValue: props.values.maxSpeechiness,
+            showColumn: props.values.showColumnSpeechiness,
+        },
+        {
+            name: "Acousticness",
+            label: "Acousticness",
+            minValue: props.values.minAcousticness,
+            maxValue: props.values.maxAcousticness,
+            showColumn: props.values.showColumnAcousticness,
+        },
+        {
+            name: "Instrumentalness",
+            label: "Instrumentalness",
+            minValue: props.values.minInstrumentalness,
+            maxValue: props.values.maxInstrumentalness,
+            showColumn: props.values.showColumnInstrumentalness,
+        },
+        {
+            name: "Liveness",
+            label: "Liveness",
+            minValue: props.values.minLiveness,
+            maxValue: props.values.maxLiveness,
+            showColumn: props.values.showColumnLiveness,
+        },
+        {
+            name: "Valence",
+            label: "Valence",
+            minValue: props.values.minValence,
+            maxValue: props.values.maxValence,
+            showColumn: props.values.showColumnValence,
+        },
     ];
 
     return (
@@ -57,6 +106,39 @@ function Form(props) {
                     />
                 </div>
 
+                <div className="filter">
+                    <label htmlFor="key">Key</label>
+                    <select
+                        id="key"
+                        name="key"
+                        onChange={props.handler}
+                        label="Key"
+                        value={props.values.key}
+                    >
+                        <option value="any">Any</option>
+                        <option value="0">C</option>
+                        <option value="1">C♯</option>
+                        <option value="2">D</option>
+                        <option value="3">D♯</option>
+                        <option value="4">E</option>
+                        <option value="5">F</option>
+                        <option value="6">F♯</option>
+                        <option value="7">G</option>
+                        <option value="8">G♯</option>
+                        <option value="9">A</option>
+                        <option value="10">A♯</option>
+                        <option value="11">B</option>
+                    </select>
+                    <label htmlFor="explicit">Explicit</label>
+                    <input
+                        type="checkbox"
+                        id="explicit"
+                        name="explicit"
+                        onChange={props.handler}
+                        value={props.values.explicit}
+                    />
+                </div>
+
                 {minMaxFilters.map((filter, i) => (
                     <MinMaxFilter
                         label={filter.label}
@@ -68,36 +150,6 @@ function Form(props) {
                         handler={props.handler}
                     />
                 ))}
-                <label htmlFor="key">Key</label>
-                <select
-                    id="key"
-                    name="key"
-                    onChange={props.handler}
-                    label="Key"
-                    value={props.values.key}
-                >
-                    <option value="any">Any</option>
-                    <option value="0">C</option>
-                    <option value="1">C♯</option>
-                    <option value="2">D</option>
-                    <option value="3">D♯</option>
-                    <option value="4">E</option>
-                    <option value="5">F</option>
-                    <option value="6">F♯</option>
-                    <option value="7">G</option>
-                    <option value="8">G♯</option>
-                    <option value="9">A</option>
-                    <option value="10">A♯</option>
-                    <option value="11">B</option>
-                </select>
-                <label htmlFor="explicit">Explicit</label>
-                <input
-                    type="checkbox"
-                    id="explicit"
-                    name="explicit"
-                    onChange={props.handler}
-                    value={props.values.explicit}
-                />
             </fieldset>
         </form>
     );

@@ -16,15 +16,73 @@ const TrackList = (props) => (
                         <th>Title</th>
                         <th>Genres</th>
                         <th>Release date</th>
-
                         {props.values.showColumnTempo === "true" && (
                             <th>Tempo (bpm)</th>
                         )}
                         {props.values.showColumnPopularity === "true" && (
-                            <th>Track popularity</th>
+                            <th>
+                                Track popularity
+                                <br />
+                                [0-100]
+                            </th>
                         )}
                         {props.values.showColumnMainArtistPopularity ===
-                            "true" && <th>Main artist popularity</th>}
+                            "true" && (
+                            <th>
+                                Main artist popularity
+                                <br />
+                                [0-100]
+                            </th>
+                        )}
+                        {props.values.showColumnDanceability === "true" && (
+                            <th>
+                                Danceability
+                                <br />
+                                [0-1000]
+                            </th>
+                        )}
+                        {props.values.showColumnEnergy === "true" && (
+                            <th>
+                                Energy
+                                <br />
+                                [0-1000]
+                            </th>
+                        )}
+                        {props.values.showColumnSpeechiness === "true" && (
+                            <th>
+                                Speechiness
+                                <br />
+                                [0-1000]
+                            </th>
+                        )}
+                        {props.values.showColumnAcousticness === "true" && (
+                            <th>
+                                Acousticness
+                                <br />
+                                [0-1000]
+                            </th>
+                        )}
+                        {props.values.showColumnInstrumentalness === "true" && (
+                            <th>
+                                Instrumentalness
+                                <br />
+                                [0-1000]
+                            </th>
+                        )}
+                        {props.values.showColumnLiveness === "true" && (
+                            <th>
+                                Liveness
+                                <br />
+                                [0-1000]
+                            </th>
+                        )}
+                        {props.values.showColumnValence === "true" && (
+                            <th>
+                                Valence
+                                <br />
+                                [0-1000]
+                            </th>
+                        )}
                         <th>Key</th>
                     </tr>
                 </thead>
@@ -70,6 +128,26 @@ const TrackList = (props) => (
                             {props.values.showColumnMainArtistPopularity ===
                                 "true" && (
                                 <td>{track.main_artist_popularity}</td>
+                            )}
+                            {props.values.showColumnDanceability === "true" && (
+                                <td>{track.danceability}</td>
+                            )}
+                            {props.values.showColumnEnergy === "true" && (
+                                <td>{track.energy}</td>
+                            )}
+                            {props.values.showColumnSpeechiness === "true" && (
+                                <td>{track.speechiness}</td>
+                            )}
+                            {props.values.showColumnAcousticness === "true" && (
+                                <td>{track.acousticness}</td>
+                            )}
+                            {props.values.showColumnInstrumentalness ===
+                                "true" && <td>{track.instrumentalness}</td>}
+                            {props.values.showColumnLiveness === "true" && (
+                                <td>{track.liveness}</td>
+                            )}
+                            {props.values.showColumnValence === "true" && (
+                                <td>{track.valence}</td>
                             )}
                             <td>
                                 <TrackKey trackKey={track.key} />
