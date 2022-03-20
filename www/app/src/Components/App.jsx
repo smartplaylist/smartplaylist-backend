@@ -1,137 +1,68 @@
 import "./App.css";
-import React from "react";
-import TrackList from "./TrackList";
+import React, { useEffect, useState, useMemo } from "react";
 import Form from "./Form";
-import Stats from "./Stats";
 import Player from "./Player";
+import Stats from "./Stats";
+import TrackList from "./TrackList";
 
 const HOST = `http://127.0.0.1:3000`;
 const FETCH_DELAY = 500;
 
-class App extends React.Component {
-    constructor(props) {
-        super(props);
+function App() {
+    const [totalResults, setTotalResults] = useState(0);
+    const [totalTracks, setTotalTracks] = useState(0);
+    const [previewUrl, setPreviewUrl] = useState("");
+    const [tracks, setTracks] = useState([]);
+    const [form, setForm] = useState({
+        query: "",
+        genres: "",
+        releaseDate: "2020-01-01",
 
-        this.handleFormChange = this.handleFormChange.bind(this);
-        this.setPlayerSong = this.setPlayerSong.bind(this);
+        minTempo: 80,
+        maxTempo: 210,
+        showColumnTempo: "true",
 
-        this.state = {
-            totalResults: 0,
-            totalTracks: 0,
-            previewUrl: "",
-            form: {
-                query: "",
-                genres: "",
-                releaseDate: "2020-01-01",
+        minPopularity: 0,
+        maxPopularity: 100,
+        showColumnPopularity: "true",
 
-                minTempo: 80,
-                maxTempo: 210,
-                showColumnTempo: "true",
+        minMainArtistPopularity: 1,
+        maxMainArtistPopularity: 100,
+        showColumnMainArtistPopularity: "true",
 
-                minPopularity: 0,
-                maxPopularity: 100,
-                showColumnPopularity: "true",
+        minDanceability: 0,
+        maxDanceability: 1000,
+        showColumnDanceability: "true",
 
-                minMainArtistPopularity: 1,
-                maxMainArtistPopularity: 100,
-                showColumnMainArtistPopularity: "true",
+        minEnergy: 0,
+        maxEnergy: 1000,
+        showColumnEnergy: "true",
 
-                minDanceability: 0,
-                maxDanceability: 1000,
-                showColumnDanceability: "true",
+        minSpeechiness: 0,
+        maxSpeechiness: 1000,
+        showColumnSpeechiness: "true",
 
-                minEnergy: 0,
-                maxEnergy: 1000,
-                showColumnEnergy: "true",
+        minAcousticness: 0,
+        maxAcousticness: 1000,
+        showColumnAcousticness: "true",
 
-                minSpeechiness: 0,
-                maxSpeechiness: 1000,
-                showColumnSpeechiness: "true",
+        minInstrumentalness: 0,
+        maxInstrumentalness: 1000,
+        showColumnInstrumentalness: "true",
 
-                minAcousticness: 0,
-                maxAcousticness: 1000,
-                showColumnAcousticness: "true",
+        minLiveness: 0,
+        maxLiveness: 1000,
+        showColumnLiveness: "true",
 
-                minInstrumentalness: 0,
-                maxInstrumentalness: 1000,
-                showColumnInstrumentalness: "true",
+        minValence: 0,
+        maxValence: 1000,
+        showColumnValence: "true",
 
-                minLiveness: 0,
-                maxLiveness: 1000,
-                showColumnLiveness: "true",
+        explicit: "checked",
+        key: "any",
+    });
 
-                minValence: 0,
-                maxValence: 1000,
-                showColumnValence: "true",
-
-                explicit: "checked",
-                key: "any",
-            },
-            tracks: [],
-        };
-    }
-
-    // From: https://davidwalsh.name/javascript-debounce-function
-    // Used to postpone calling same function several times
-    // Used to reduce number of API calls while typing
-    debounce(func, wait, immediate) {
-        console.log(func, wait, immediate);
-        var timeout;
-        return function () {
-            var context = this,
-                args = arguments;
-            var later = function () {
-                timeout = null;
-                if (!immediate) func.apply(context, args);
-            };
-            var callNow = immediate && !timeout;
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-            if (callNow) func.apply(context, args);
-        };
-    }
-
-    fetchData() {
-        const LIMIT = 100;
-
-        let url = HOST;
-        url += `/tracks`;
-        url += `?select=spotify_id,all_artists,name,genres,release_date,tempo,popularity,danceability,energy,speechiness,acousticness,instrumentalness,liveness,valence,main_artist_popularity,key,preview_url`;
-        url += `&order=release_date.desc,popularity.desc,spotify_id.asc`;
-        url += `&limit=${LIMIT}`;
-        url += `&tempo=gte.${this.state.form.minTempo}&tempo=lte.${this.state.form.maxTempo}`;
-        url += `&popularity=gte.${this.state.form.minPopularity}&popularity=lte.${this.state.form.maxPopularity}`;
-        url += `&main_artist_popularity=gte.${this.state.form.minMainArtistPopularity}&main_artist_popularity=lte.${this.state.form.maxMainArtistPopularity}`;
-        url += `&danceability=gte.${this.state.form.minDanceability}&danceability=lte.${this.state.form.maxDanceability}`;
-        url += `&energy=gte.${this.state.form.minEnergy}&energy=lte.${this.state.form.maxEnergy}`;
-        url += `&speechiness=gte.${this.state.form.minSpeechiness}&speechiness=lte.${this.state.form.maxSpeechiness}`;
-        url += `&acousticness=gte.${this.state.form.minAcousticness}&acousticness=lte.${this.state.form.maxAcousticness}`;
-        url += `&instrumentalness=gte.${this.state.form.minInstrumentalness}&instrumentalness=lte.${this.state.form.maxInstrumentalness}`;
-        url += `&liveness=gte.${this.state.form.minLiveness}&liveness=lte.${this.state.form.maxLiveness}`;
-        url += `&valence=gte.${this.state.form.minValence}&valence=lte.${this.state.form.maxValence}`;
-        url += `&or=(name.ilike.*${this.state.form.query}*,all_artists_string.ilike.*${this.state.form.query}*)`;
-        // TODO: Split genres by space and do like=part1 or like=part2 or ...
-        url += `&genres_string=ilike.*${this.state.form.genres}*`;
-        url += `&release_date=gte.${this.state.form.releaseDate}`;
-        if (this.state.form.key !== "any")
-            url += `&key=eq.${this.state.form.key}`;
-
-        fetch(url, {
-            headers: { Prefer: "count=exact" },
-        })
-            .then((response) => {
-                let count = response.headers.get("Content-Range");
-                this.setState({ totalResults: count.split("/")[1] });
-                return response.json();
-            })
-            .then((data) => {
-                this.setState({ tracks: data });
-            });
-    }
-
-    debouncedFetchData = this.debounce(this.fetchData, FETCH_DELAY);
-
-    fetchTotalTracks() {
+    const fetchTotalTracks = () => {
         let url = HOST;
 
         url += `/tracks?select=spotify_id`;
@@ -142,65 +73,112 @@ class App extends React.Component {
             headers: { Prefer: "count=estimated" },
         }).then((response) => {
             let count = response.headers.get("Content-Range");
-            this.setState({ totalTracks: count.split("/")[1] });
+            setTotalTracks(count.split("/")[1]);
         });
-    }
+    };
 
-    // Run on first render
-    componentDidMount() {
+    const fetchData = (form) => {
+        const LIMIT = 100;
+
+        let url = HOST;
+        url += `/tracks`;
+        url += `?select=spotify_id,all_artists,name,genres,release_date,tempo,popularity,danceability,energy,speechiness,acousticness,instrumentalness,liveness,valence,main_artist_popularity,key,preview_url`;
+        url += `&order=release_date.desc,popularity.desc,spotify_id.asc`;
+        url += `&limit=${LIMIT}`;
+        url += `&tempo=gte.${form.minTempo}&tempo=lte.${form.maxTempo}`;
+        url += `&popularity=gte.${form.minPopularity}&popularity=lte.${form.maxPopularity}`;
+        url += `&main_artist_popularity=gte.${form.minMainArtistPopularity}&main_artist_popularity=lte.${form.maxMainArtistPopularity}`;
+        url += `&danceability=gte.${form.minDanceability}&danceability=lte.${form.maxDanceability}`;
+        url += `&energy=gte.${form.minEnergy}&energy=lte.${form.maxEnergy}`;
+        url += `&speechiness=gte.${form.minSpeechiness}&speechiness=lte.${form.maxSpeechiness}`;
+        url += `&acousticness=gte.${form.minAcousticness}&acousticness=lte.${form.maxAcousticness}`;
+        url += `&instrumentalness=gte.${form.minInstrumentalness}&instrumentalness=lte.${form.maxInstrumentalness}`;
+        url += `&liveness=gte.${form.minLiveness}&liveness=lte.${form.maxLiveness}`;
+        url += `&valence=gte.${form.minValence}&valence=lte.${form.maxValence}`;
+        url += `&or=(name.ilike.*${form.query}*,all_artists_string.ilike.*${form.query}*)`;
+        // TODO: Split genres by space and do like=part1 or like=part2 or ...
+        url += `&genres_string=ilike.*${form.genres}*`;
+        url += `&release_date=gte.${form.releaseDate}`;
+        if (form.key !== "any") url += `&key=eq.${form.key}`;
+
+        fetch(url, {
+            headers: { Prefer: "count=exact" },
+        })
+            .then((response) => {
+                let count = response.headers.get("Content-Range");
+                setTotalResults(count.split("/")[1]);
+                return response.json();
+            })
+            .then((data) => {
+                setTracks(data);
+            });
+    };
+
+    // Debouncing with arguments
+    // https://dev.to/monaye/refactor-davidwalsh-s-debounce-function-5afc
+    const debounce = (func, delay, immediate) => {
+        let timerId;
+        return (...args) => {
+            const boundFunc = func.bind(this, ...args);
+            clearTimeout(timerId);
+            if (immediate && !timerId) {
+                boundFunc();
+            }
+            const calleeFunc = immediate
+                ? () => {
+                      timerId = null;
+                  }
+                : boundFunc;
+            timerId = setTimeout(calleeFunc, delay);
+        };
+    };
+
+    const debouncedFetchData = useMemo(
+        () => debounce(fetchData, FETCH_DELAY),
+        []
+    );
+
+    // Run on first render, ex componentDidMount()
+    // Second parameter is `[]` to run only when an empty table changes (which results in only one run)
+    useEffect(() => {
         document.getElementById("query").focus();
-        this.fetchTotalTracks();
-        this.fetchData();
-    }
+        fetchTotalTracks();
+    }, []);
 
-    componentDidUpdate(prevProps, prevState, snapshot) {
-        if (this.state.form !== prevState.form) {
-            this.debouncedFetchData();
-        }
-    }
+    // ex componentDidUpdate()
+    useEffect(() => {
+        debouncedFetchData(form);
+    }, [debouncedFetchData, form]);
 
     // Update state based on form's elements and their name
-    handleFormChange(e) {
-        this.setState((s) => ({
-            form: {
-                ...s.form,
-                [e.target.name]: e.target.value,
-            },
+    const handleFormChange = (e) => {
+        setForm((prev) => ({
+            ...prev,
+            [e.target.name]: e.target.value,
         }));
-    }
+    };
 
-    setPlayerSong(url) {
-        console.log(url);
-        this.setState({ previewUrl: url });
-    }
+    const setPlayerSong = (url) => {
+        setPreviewUrl(url);
+    };
 
-    // TODO: Use https://react-bootstrap.github.io/ for UI
-
-    render() {
-        return (
-            <div className="App">
-                <header className="App-header">
-                    <h1>Spotify smart playlist generator</h1>
-                </header>
-                <div id="main">
-                    <Stats
-                        totalResults={this.state.totalResults}
-                        totalTracks={this.state.totalTracks}
-                    />
-                    <Form
-                        handler={this.handleFormChange}
-                        values={this.state.form}
-                    />
-                    <Player previewUrl={this.state.previewUrl} />
-                    <TrackList
-                        tracks={this.state.tracks}
-                        values={this.state.form}
-                        onPlayClick={this.setPlayerSong}
-                    />
-                </div>
+    return (
+        <div className="App">
+            <header className="App-header">
+                <h1>Spotify smart playlist generator</h1>
+            </header>
+            <div id="main">
+                <Stats totalResults={totalResults} totalTracks={totalTracks} />
+                <Form handler={handleFormChange} values={form} />
+                <Player previewUrl={previewUrl} />
+                <TrackList
+                    tracks={tracks}
+                    values={form}
+                    onPlayClick={setPlayerSong}
+                />
             </div>
-        );
-    }
+        </div>
+    );
 }
 
 export default App;
