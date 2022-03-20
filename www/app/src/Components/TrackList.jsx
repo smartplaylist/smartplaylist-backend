@@ -1,6 +1,6 @@
 import React from "react";
-import ReactPlayer from "react-player/lazy";
 import TrackKey from "./TrackKey";
+import PlayController from "./PlayController";
 import "./TrackList.css";
 
 const TrackList = (props) => (
@@ -91,13 +91,10 @@ const TrackList = (props) => (
                         <tr key={track.spotify_id}>
                             <td>{i + 1}</td>
                             <td>
-                                <ReactPlayer
-                                    url={track.preview_url}
-                                    width="240px"
-                                    height="20px"
-                                    playing={false}
-                                    controls={true}
-                                    volume={0.05}
+                                <PlayController
+                                    onPlayClick={() =>
+                                        props.onPlayClick(track.preview_url)
+                                    }
                                 />
                             </td>
                             <td>

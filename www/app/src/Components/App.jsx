@@ -3,18 +3,22 @@ import React from "react";
 import TrackList from "./TrackList";
 import Form from "./Form";
 import Stats from "./Stats";
+import Player from "./Player";
 
 const HOST = `http://127.0.0.1:3000`;
+const FETCH_DELAY = 500;
 
 class App extends React.Component {
     constructor(props) {
         super(props);
 
         this.handleFormChange = this.handleFormChange.bind(this);
+        this.setPlayerSong = this.setPlayerSong.bind(this);
 
         this.state = {
             totalResults: 0,
             totalTracks: 0,
+            previewUrl: "",
             form: {
                 query: "",
                 genres: "",
@@ -67,6 +71,26 @@ class App extends React.Component {
         };
     }
 
+    // From: https://davidwalsh.name/javascript-debounce-function
+    // Used to postpone calling same function several times
+    // Used to reduce number of API calls while typing
+    debounce(func, wait, immediate) {
+        console.log(func, wait, immediate);
+        var timeout;
+        return function () {
+            var context = this,
+                args = arguments;
+            var later = function () {
+                timeout = null;
+                if (!immediate) func.apply(context, args);
+            };
+            var callNow = immediate && !timeout;
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+            if (callNow) func.apply(context, args);
+        };
+    }
+
     fetchData() {
         const LIMIT = 100;
 
@@ -93,7 +117,6 @@ class App extends React.Component {
             url += `&key=eq.${this.state.form.key}`;
 
         fetch(url, {
-            method: "GET",
             headers: { Prefer: "count=exact" },
         })
             .then((response) => {
@@ -106,6 +129,8 @@ class App extends React.Component {
             });
     }
 
+    debouncedFetchData = this.debounce(this.fetchData, FETCH_DELAY);
+
     fetchTotalTracks() {
         let url = HOST;
 
@@ -114,7 +139,6 @@ class App extends React.Component {
         url += `&energy=not.is.null`;
 
         fetch(url, {
-            method: "GET",
             headers: { Prefer: "count=estimated" },
         }).then((response) => {
             let count = response.headers.get("Content-Range");
@@ -131,7 +155,7 @@ class App extends React.Component {
 
     componentDidUpdate(prevProps, prevState, snapshot) {
         if (this.state.form !== prevState.form) {
-            this.fetchData();
+            this.debouncedFetchData();
         }
     }
 
@@ -144,6 +168,13 @@ class App extends React.Component {
             },
         }));
     }
+
+    setPlayerSong(url) {
+        console.log(url);
+        this.setState({ previewUrl: url });
+    }
+
+    // TODO: Use https://react-bootstrap.github.io/ for UI
 
     render() {
         return (
@@ -160,9 +191,11 @@ class App extends React.Component {
                         handler={this.handleFormChange}
                         values={this.state.form}
                     />
+                    <Player previewUrl={this.state.previewUrl} />
                     <TrackList
                         tracks={this.state.tracks}
                         values={this.state.form}
+                        onPlayClick={this.setPlayerSong}
                     />
                 </div>
             </div>
