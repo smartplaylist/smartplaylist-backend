@@ -51,7 +51,9 @@ def main():
             channel_albums.basic_publish(
                 exchange="",
                 routing_key=CHANNEL_ALBUMS_NAME,
-                body=json.dumps({"spotify_id": item["id"], "total_albums": 0}),
+                body=json.dumps(
+                    {"spotify_id": item["id"], "total_albums": 0, "name": item["name"]}
+                ),
             )
             channel_related_artists.basic_publish(
                 exchange="",

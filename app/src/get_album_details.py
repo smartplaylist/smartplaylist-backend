@@ -1,4 +1,5 @@
 import os
+import json
 import sys
 
 import psycopg2.errors
@@ -24,8 +25,7 @@ def main():
                 (
                     data["popularity"],
                     data["label"],
-                    # TODO: Save copyrights as an array (change database structure)
-                    ", ".join(copyrights),
+                    copyrights,
                     data["id"],
                 ),
             )
@@ -52,7 +52,12 @@ def main():
 
     def callback(ch, method, properties, body):
 
-        album_id = body.decode()
+        message = json.loads(body.decode())
+        album_id = message["spotify_id"]
+        album_name = message["album_name"]
+        album_artist = message["album_artist"]
+        album_artist_spotify_id = message["album_artist_spotify_id"]
+
         result = sp.album(album_id=album_id)
         update_album(cursor, result)
 
@@ -80,7 +85,7 @@ def main():
 
             try:
                 cursor.execute(
-                    "INSERT INTO tracks (spotify_id, name, main_artist, main_artist_popularity, main_artist_followers, all_artists, all_artists_string, release_date, genres, genres_string, track_number, disc_number, duration_ms, explicit, preview_url) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);",
+                    "INSERT INTO tracks (spotify_id, name, main_artist, main_artist_popularity, main_artist_followers, all_artists, all_artists_string, release_date, genres, genres_string, track_number, disc_number, duration_ms, explicit, preview_url, from_album, from_album_spotify_id, album_artist, album_artist_spotify_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);",
                     (
                         item["id"],
                         item["name"],
@@ -97,6 +102,10 @@ def main():
                         item["duration_ms"],
                         item["explicit"],
                         item["preview_url"],
+                        album_name,
+                        album_id,
+                        album_artist,
+                        album_artist_spotify_id,
                     ),
                 )
             except psycopg2.errors.UniqueViolation as e:

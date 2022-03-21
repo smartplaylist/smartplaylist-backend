@@ -25,13 +25,20 @@ def main():
     log = get_logger(os.path.basename(__file__))
 
     def callback(ch, method, properties, body):
-        """Handle received artist's id from the queue"""
+        """Handle received artist's data from the queue"""
+
         message = json.loads(body.decode())
-        id = message["spotify_id"]
+        artist_id = message["spotify_id"]
         total_albums = message["total_albums"]
+        artist_name = message["name"]
+
+        log.info(
+            "👨🏽‍🎤 Processing",
+            name=artist_name,
+        )
 
         results = sp.artist_albums(
-            artist_id=id,
+            artist_id=artist_id,
             album_type="album,single,appears_on",
             offset=0,
             limit=50,
@@ -39,13 +46,13 @@ def main():
         )
 
         if total_albums >= results["total"]:
-            log.info("No new albums", id=id)
+            log.info("No new albums", artist_id=artist_id)
             ch.basic_ack(method.delivery_tag)
             return
 
         new_albums = results["total"] - total_albums
 
-        log.info("👨🏽‍🎤 New releases", id=id, albums_count=new_albums)
+        log.info("👨🏽‍🎤 New releases", artist_id=artist_id, albums_count=new_albums)
 
         # We need to do make several requests since data is sorted by albumy type
         # and then by release date
@@ -61,14 +68,14 @@ def main():
         try:
             cursor.execute(
                 "UPDATE artists SET total_albums=%s, last_update=%s WHERE spotify_id=%s;",
-                (results["total"], date.today(), id),
+                (results["total"], date.today(), artist_id),
             )
         except Exception as e:
             log.exception("Unhandled exception")
         else:
             log.info(
                 "👨🏽‍🎤 Updated total albums",
-                id=id,
+                artist_id=artist_id,
                 total_albums=results["total"],
                 prev_total_albums=total_albums,
             )
@@ -79,17 +86,20 @@ def main():
                 artists.append(artist["name"])
             try:
                 cursor.execute(
-                    "INSERT INTO albums (spotify_id, name, main_artist, all_artists, album_group, album_type, release_date, release_date_precision, total_tracks) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);",
+                    "INSERT INTO albums (spotify_id, name, main_artist, all_artists, from_discography_of, album_group, album_type, release_date, release_date_precision, total_tracks, from_discography_of_spotify_id, main_artist_spotify_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);",
                     (
                         item["id"],
                         item["name"],
                         artists[0],
                         artists,
+                        artist_name,
                         item["album_group"],
                         item["album_type"],
                         item["release_date"],
                         item["release_date_precision"],
                         item["total_tracks"],
+                        artist_id,
+                        item["artists"][0]["id"],
                     ),
                 )
             except psycopg2.errors.UniqueViolation as e:
@@ -116,7 +126,17 @@ def main():
                 # Should this be here? Where should I filter this?
                 if item["release_date"] >= "2020":
                     publish_channel.basic_publish(
-                        exchange="", routing_key=WRITING_QUEUE_NAME, body=item["id"]
+                        exchange="",
+                        routing_key=WRITING_QUEUE_NAME,
+                        body=json.dumps(
+                            {
+                                "spotify_id": item["id"],
+                                "album_name": item["name"],
+                                "album_artist": item["name"],
+                                "album_artist": artists[0],
+                                "album_artist_spotify_id": item["artists"][0]["id"],
+                            }
+                        ),
                     )
 
         ch.basic_ack(method.delivery_tag)

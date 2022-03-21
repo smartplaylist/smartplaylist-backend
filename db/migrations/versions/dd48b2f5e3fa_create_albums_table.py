@@ -21,22 +21,19 @@ def upgrade():
     op.create_table(
         "albums",
         sa.Column("id", sa.Integer, primary_key=True),
-        sa.Column("spotify_id", sa.Text, nullable=False),
         sa.Column("name", sa.Text, nullable=False),
         sa.Column("main_artist", sa.Text, nullable=False),
         sa.Column(
             "all_artists", sa.dialects.postgresql.ARRAY(sa.String()), nullable=False
         ),
+        sa.Column("from_discography_of", sa.Text, nullable=False),
         sa.Column("release_date", sa.Text, nullable=False),
-        sa.Column(
-            "release_date_precision",
-            sa.Enum("day", "month", "year", name="release_date_precision_enum"),
-            nullable=False,
-        ),
         sa.Column("total_tracks", sa.Integer, nullable=False),
         sa.Column("popularity", sa.Integer, nullable=True),
         sa.Column("label", sa.Text, nullable=True),
-        sa.Column("copyrights", sa.Text, nullable=True),
+        sa.Column(
+            "copyrights", sa.dialects.postgresql.ARRAY(sa.String()), nullable=True
+        ),
         sa.Column(
             "album_group",
             sa.Enum(
@@ -47,6 +44,14 @@ def upgrade():
         sa.Column(
             "album_type",
             sa.Enum("album", "single", "compilation", name="album_type_enum"),
+            nullable=False,
+        ),
+        sa.Column("spotify_id", sa.Text, nullable=False),
+        sa.Column("main_artist_spotify_id", sa.Text, nullable=False),
+        sa.Column("from_discography_of_spotify_id", sa.Text, nullable=False),
+        sa.Column(
+            "release_date_precision",
+            sa.Enum("day", "month", "year", name="release_date_precision_enum"),
             nullable=False,
         ),
         sa.Column(
