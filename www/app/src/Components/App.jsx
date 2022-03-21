@@ -184,12 +184,13 @@ function App() {
             <div id="main">
                 <Stats totalResults={totalResults} totalTracks={totalTracks} />
                 <Form handler={handleFormChange} values={form} />
-                <Player previewUrl={previewUrl} />
+
                 <TrackList
                     tracks={tracks}
                     values={form}
                     onPlayClick={setPlayerSong}
                 />
+                <Player previewUrl={previewUrl} />
             </div>
         </div>
     );

@@ -1,9 +1,11 @@
 #player {
-    border: 1px solid salmon;
-    background-color: white;
+    background-color: rgb(216, 127, 127);
+    opacity: 0.9;
     position: fixed;
-    width: 100%;
-    height: 50px;
+    /* width: 100%; */
+    height: 40px;
     padding: 16px;
     bottom: 0;
+    left: 16px;
+    right: 16px;
 }
