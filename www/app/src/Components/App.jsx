@@ -30,6 +30,10 @@ function App() {
         maxMainArtistPopularity: 100,
         showColumnMainArtistPopularity: "true",
 
+        minMainArtistFollowers: 1,
+        maxMainArtistFollowers: 50000000,
+        showColumnMainArtistFollowers: "true",
+
         minDanceability: 0,
         maxDanceability: 1000,
         showColumnDanceability: "true",
@@ -82,12 +86,13 @@ function App() {
 
         let url = HOST;
         url += `/tracks`;
-        url += `?select=spotify_id,all_artists,name,genres,release_date,tempo,popularity,danceability,energy,speechiness,acousticness,instrumentalness,liveness,valence,main_artist_popularity,key,preview_url`;
+        url += `?select=spotify_id,all_artists,name,genres,release_date,tempo,popularity,danceability,energy,speechiness,acousticness,instrumentalness,liveness,valence,main_artist_popularity,main_artist_followers,key,preview_url`;
         url += `&order=release_date.desc,popularity.desc,spotify_id.asc`;
         url += `&limit=${LIMIT}`;
         url += `&tempo=gte.${form.minTempo}&tempo=lte.${form.maxTempo}`;
         url += `&popularity=gte.${form.minPopularity}&popularity=lte.${form.maxPopularity}`;
         url += `&main_artist_popularity=gte.${form.minMainArtistPopularity}&main_artist_popularity=lte.${form.maxMainArtistPopularity}`;
+        url += `&main_artist_followers=gte.${form.minMainArtistFollowers}&main_artist_followers=lte.${form.maxMainArtistFollowers}`;
         url += `&danceability=gte.${form.minDanceability}&danceability=lte.${form.maxDanceability}`;
         url += `&energy=gte.${form.minEnergy}&energy=lte.${form.maxEnergy}`;
         url += `&speechiness=gte.${form.minSpeechiness}&speechiness=lte.${form.maxSpeechiness}`;
@@ -156,6 +161,8 @@ function App() {
     // Second parameter is `[]` to run only when an empty table changes (which results in only one run)
     useEffect(() => {
         document.getElementById("query").focus();
+        // TODO: Create "initialLoad" view in database to grab all needed initial data
+        // Like: total tracks, max artist followers?
         fetchTotalTracks();
     }, []);
 

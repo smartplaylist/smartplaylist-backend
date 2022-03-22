@@ -32,11 +32,20 @@ def main():
         result = sp.track(track_id=track_id)
         track_popularity = result["popularity"]
 
+        # First grab features - it uses [] already
+        # Second grab sp.tracks
+        # Makre sure if it's needed to iterate over the result - if it reurns all results at once?
+        # Test it by generating 100 ids with comas
+        # change prefetch_count to 50?
+        # merge two tables, adding popularity to result_features
+        # and then `for item in result_features`
+
         result_features = sp.audio_features(tracks=[track_id])
 
         if not result_features or result_features[0] is None:
             log.info("🔉 No data", id=track_id)
             ch.basic_ack(method.delivery_tag)
+            # TODO: this means we will not save popularity if there are not audio features
             return
 
         for item in result_features:

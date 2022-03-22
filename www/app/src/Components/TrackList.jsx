@@ -34,6 +34,14 @@ const TrackList = (props) => (
                                 [0-100]
                             </th>
                         )}
+                        {props.values.showColumnMainArtistFollowers ===
+                            "true" && (
+                            <th>
+                                Main artist followers
+                                <br />
+                                [0-50mln]
+                            </th>
+                        )}
                         {props.values.showColumnDanceability === "true" && (
                             <th>
                                 Danceability
@@ -125,6 +133,10 @@ const TrackList = (props) => (
                             {props.values.showColumnMainArtistPopularity ===
                                 "true" && (
                                 <td>{track.main_artist_popularity}</td>
+                            )}
+                            {props.values.showColumnMainArtistFollowers ===
+                                "true" && (
+                                <td>{track.main_artist_followers}</td>
                             )}
                             {props.values.showColumnDanceability === "true" && (
                                 <td>{track.danceability}</td>

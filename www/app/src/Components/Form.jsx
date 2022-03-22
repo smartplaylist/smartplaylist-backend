@@ -26,6 +26,13 @@ function Form(props) {
             showColumn: props.values.showColumnMainArtistPopularity,
         },
         {
+            name: "MainArtistFollowers",
+            label: "Main artist followers",
+            minValue: props.values.minMainArtistFollowers,
+            maxValue: props.values.maxMainArtistFollowers,
+            showColumn: props.values.showColumnMainArtistFollowers,
+        },
+        {
             name: "Danceability",
             label: "Danceability",
             minValue: props.values.minDanceability,
