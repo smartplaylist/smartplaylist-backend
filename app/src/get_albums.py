@@ -3,6 +3,7 @@ import json
 import os
 import sys
 
+import pika
 import psycopg2.errors
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
@@ -136,6 +137,9 @@ def main():
                                 "album_artist": artists[0],
                                 "album_artist_spotify_id": item["artists"][0]["id"],
                             }
+                        ),
+                        properties=pika.BasicProperties(
+                            delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
                         ),
                     )
 

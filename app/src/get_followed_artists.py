@@ -2,6 +2,7 @@ import json
 import os
 import sys
 
+import pika
 import psycopg2.errors
 import spotipy
 from spotipy.oauth2 import SpotifyPKCE
@@ -54,11 +55,17 @@ def main():
                 body=json.dumps(
                     {"spotify_id": item["id"], "total_albums": 0, "name": item["name"]}
                 ),
+                properties=pika.BasicProperties(
+                    delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
+                ),
             )
             channel_related_artists.basic_publish(
                 exchange="",
                 routing_key=CHANNEL_RELATED_ARTISTS_NAME,
                 body=json.dumps({"spotify_id": item["id"], "name": item["name"]}),
+                properties=pika.BasicProperties(
+                    delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
+                ),
             )
         except psycopg2.errors.UniqueViolation as e:
             log.info(

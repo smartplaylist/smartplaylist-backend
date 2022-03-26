@@ -2,6 +2,7 @@ import json
 import os
 import sys
 
+import pika
 import psycopg2.errors
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
@@ -51,6 +52,9 @@ def main():
                             "total_albums": 0,
                             "name": item["name"],
                         }
+                    ),
+                    properties=pika.BasicProperties(
+                        delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
                     ),
                 )
 

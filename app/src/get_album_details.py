@@ -2,6 +2,7 @@ import os
 import json
 import sys
 
+import pika
 import psycopg2.errors
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
@@ -129,7 +130,12 @@ def main():
                     status="saved",
                 )
                 publish_channel.basic_publish(
-                    exchange="", routing_key=WRITING_QUEUE_NAME, body=item["id"]
+                    exchange="",
+                    routing_key=WRITING_QUEUE_NAME,
+                    body=item["id"],
+                    properties=pika.BasicProperties(
+                        delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
+                    ),
                 )
 
         ch.basic_ack(method.delivery_tag)
