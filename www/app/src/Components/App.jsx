@@ -74,7 +74,7 @@ function App() {
         url += `&energy=not.is.null`;
 
         fetch(url, {
-            headers: { Prefer: "count=estimated" },
+            headers: { Prefer: "count=exact" },
         }).then((response) => {
             let count = response.headers.get("Content-Range");
             setTotalTracks(count.split("/")[1]);
