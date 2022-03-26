@@ -1,4 +1,3 @@
-from distutils.log import info
 import os
 import sys
 
@@ -9,85 +8,109 @@ from structlog import get_logger
 import imports.broker as broker
 import imports.db as db
 
-
 READING_QUEUE_NAME = "tracks"
+PREFETCH_COUNT = 50
 
 
 def main():
     consume_channel = broker.create_channel(READING_QUEUE_NAME)
     db_connection, cursor = db.init_connection()
-    sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials())
+    sp = spotipy.Spotify(
+        auth_manager=SpotifyClientCredentials(),
+        retries=10,
+        status_retries=3,
+        backoff_factor=0.3,
+    )
+
     log = get_logger(os.path.basename(__file__))
+
+    messages = {}
 
     def callback(ch, method, properties, body):
 
         track_id = body.decode()
-
         log.info(
-            "🔉 Processing",
+            "🔉 Grabbed from the queue",
             id=track_id,
         )
 
-        # Iterate over results to get the full list
-        result = sp.track(track_id=track_id)
-        track_popularity = result["popularity"]
+        messages[track_id] = method.delivery_tag
 
-        # First grab features - it uses [] already
-        # Second grab sp.tracks
-        # Makre sure if it's needed to iterate over the result - if it reurns all results at once?
-        # Test it by generating 100 ids with comas
-        # change prefetch_count to 50?
-        # merge two tables, adding popularity to result_features
-        # and then `for item in result_features`
+        # Process PREFETCH_COUNT messages at once
+        if len(messages) >= PREFETCH_COUNT:
 
-        result_features = sp.audio_features(tracks=[track_id])
+            tracks = {}
 
-        if not result_features or result_features[0] is None:
-            log.info("🔉 No data", id=track_id)
-            ch.basic_ack(method.delivery_tag)
-            # TODO: this means we will not save popularity if there are not audio features
-            return
+            result_audio_features = sp.audio_features(tracks=messages.keys())
+            for i, v in enumerate(result_audio_features):
+                if not v or v is None:
+                    log.info("🔉 No audio feature data", id=track_id)
+                    # We are only interested in tracks that have feature analysis
+                    # We skip other tracks
+                    continue
+                tracks[v["id"]] = v
 
-        for item in result_features:
-            try:
-                cursor.execute(
-                    "UPDATE tracks SET popularity=%s, danceability=%s, energy=%s, key=%s, loudness=%s, mode=%s, speechiness=%s, acousticness=%s, instrumentalness=%s, liveness=%s, valence=%s, tempo=%s, time_signature=%s WHERE spotify_id=%s",
-                    (
-                        track_popularity,
-                        item["danceability"] * 1000,
-                        item["energy"] * 1000,
-                        item["key"],
-                        item["loudness"],
-                        item["mode"],
-                        item["speechiness"] * 1000,
-                        item["acousticness"] * 1000,
-                        item["instrumentalness"] * 1000,
-                        item["liveness"] * 1000,
-                        item["valence"] * 1000,
-                        item["tempo"],
-                        item["time_signature"],
-                        track_id,
-                    ),
-                )
-            except Exception as e:
-                log.exception("Unhandled exception")
-            else:
-                if cursor.rowcount:
+            result_tracks = sp.tracks(tracks=messages.keys(), market=[])
+            for i, v in enumerate(result_tracks["tracks"]):
+                if not v["id"] in tracks:
+                    tracks[v["id"]] = {"id": v["id"]}
+                tracks[v["id"]]["popularity"] = v["popularity"]
+
+            for k, v in tracks.items():
+                log.info("🔉 Processing", id=k)
+
+                if not "danceability" in v:
                     log.info(
-                        "🔉 Track updated",
-                        id=track_id,
-                        status="updated",
-                    )
-                else:
-                    log.info(
-                        "🔉 Track not updated (probably not in the database)",
-                        id=track_id,
+                        "🔉 Skipping due to no audio_feature data",
+                        id=k,
                         status="skipped",
                     )
+                    # log.info("tracks", tracks=tracks)
+                    # log.info("messsages", messages=messages)
+                    # log.info("k", k=k)
+                    # log.info("v", v=v)
+                    ch.basic_ack(messages[v["id"]])
+                    continue
 
-        ch.basic_ack(method.delivery_tag)
+                try:
+                    cursor.execute(
+                        "UPDATE tracks SET popularity=%s, danceability=%s, energy=%s, key=%s, loudness=%s, mode=%s, speechiness=%s, acousticness=%s, instrumentalness=%s, liveness=%s, valence=%s, tempo=%s, time_signature=%s WHERE spotify_id=%s",
+                        (
+                            v["popularity"],
+                            v["danceability"] * 1000,
+                            v["energy"] * 1000,
+                            v["key"],
+                            v["loudness"],
+                            v["mode"],
+                            v["speechiness"] * 1000,
+                            v["acousticness"] * 1000,
+                            v["instrumentalness"] * 1000,
+                            v["liveness"] * 1000,
+                            v["valence"] * 1000,
+                            v["tempo"],
+                            v["time_signature"],
+                            v["id"],
+                        ),
+                    )
+                except Exception as e:
+                    log.exception("🔉 Unhandled exception", id=v["id"], status="skipped")
+                else:
+                    if cursor.rowcount:
+                        log.info(
+                            "🔉 Track updated",
+                            id=v["id"],
+                            status="updated",
+                        )
+                    else:
+                        log.info(
+                            "🔉 Track not updated (probably not in the database)",
+                            id=v["id"],
+                            status="skipped",
+                        )
+                ch.basic_ack(messages[v["id"]])
+            messages.clear()
 
-    consume_channel.basic_qos(prefetch_count=1)
+    consume_channel.basic_qos(prefetch_count=PREFETCH_COUNT)
     consume_channel.basic_consume(
         on_message_callback=callback, queue=READING_QUEUE_NAME
     )
