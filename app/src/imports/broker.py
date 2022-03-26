@@ -7,7 +7,7 @@ connection = pika.BlockingConnection(pika.ConnectionParameters("broker"))
 def create_channel(name):
     """Creates RabbitMQ channel"""
     channel = connection.channel()
-    channel.queue_declare(queue=name)
+    channel.queue_declare(queue=name, durable=True)
     channel.basic_qos(prefetch_count=1)
 
     return channel
