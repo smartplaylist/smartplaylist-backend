@@ -30,6 +30,7 @@ def upgrade():
         sa.Column("last_update", sa.Date, nullable=True),
         sa.Column("related_to", sa.Text, nullable=True),
         sa.Column("related_to_spotify_id", sa.Text, nullable=True),
+        sa.Column("has_related", sa.Boolean, nullable=False),
         sa.Column(
             "created_at",
             sa.TIMESTAMP,

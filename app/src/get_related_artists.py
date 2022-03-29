@@ -17,6 +17,23 @@ CHANNEL_ALBUMS_NAME = "artists"
 
 
 def main():
+    def update_artist(spotify_id):
+        try:
+            cursor.execute(
+                "UPDATE artists SET has_related=%s WHERE spotify_id=%s;",
+                (
+                    True,
+                    spotify_id,
+                ),
+            )
+        except Exception as e:
+            log.error("Unhandled exception", exc_info=True)
+        else:
+            log.info(
+                "👨🏽‍🎤 Artist's has_related updated",
+                spotify_id=spotify_id,
+            )
+
     consume_channel = broker.create_channel(CHANNEL_RELATED_ARTISTS_NAME)
     channel_albums = broker.create_channel(CHANNEL_ALBUMS_NAME)
     db_connection, cursor = db.init_connection()
@@ -32,7 +49,7 @@ def main():
         for i, item in enumerate(related_artists["artists"]):
             try:
                 cursor.execute(
-                    "INSERT INTO artists (spotify_id, name, popularity, followers, genres, genres_string, related_to_spotify_id, related_to, total_albums) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 0);",
+                    "INSERT INTO artists (spotify_id, name, popularity, followers, genres, genres_string, related_to_spotify_id, related_to, has_related, total_albums) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 0);",
                     (
                         item["id"],
                         item["name"],
@@ -42,6 +59,7 @@ def main():
                         " ".join(item["genres"]),
                         message["spotify_id"],
                         message["name"],
+                        False,
                     ),
                 )
                 channel_albums.basic_publish(
@@ -75,7 +93,7 @@ def main():
                     name=item["name"],
                     status="saved",
                 )
-
+        update_artist(message["spotify_id"])
         ch.basic_ack(method.delivery_tag)
 
     consume_channel.basic_qos(prefetch_count=1)

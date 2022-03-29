@@ -40,7 +40,7 @@ def main():
     for i, item in enumerate(artists):
         try:
             cursor.execute(
-                "INSERT INTO artists (spotify_id, name, popularity, followers, genres, genres_string, total_albums) VALUES (%s, %s, %s, %s, %s, %s, 0);",
+                "INSERT INTO artists (spotify_id, name, popularity, followers, genres, genres_string, has_related, total_albums) VALUES (%s, %s, %s, %s, %s, %s, %s, 0);",
                 (
                     item["id"],
                     item["name"],
@@ -48,6 +48,7 @@ def main():
                     item["followers"]["total"],
                     item["genres"],
                     " ".join(item["genres"]),
+                    False,
                 ),
             )
             channel_albums.basic_publish(
