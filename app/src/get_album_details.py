@@ -43,6 +43,7 @@ def main():
     db_connection, cursor = db.init_connection()
     sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials())
     log = get_logger(os.path.basename(__file__))
+    log = log.bind(logger=os.path.basename(__file__))
 
     # Build artist data array to add it to the tracks
     cursor.execute("SELECT name, genres, popularity, followers FROM artists")

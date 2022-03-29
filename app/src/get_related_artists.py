@@ -22,6 +22,7 @@ def main():
     db_connection, cursor = db.init_connection()
     sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials())
     log = get_logger(os.path.basename(__file__))
+    log = log.bind(logger=os.path.basename(__file__))
 
     def callback(ch, method, properties, body):
         message = json.loads(body.decode())

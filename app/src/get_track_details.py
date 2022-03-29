@@ -3,7 +3,7 @@ import sys
 
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-from structlog import get_logger
+import structlog
 
 import imports.broker as broker
 import imports.db as db
@@ -22,7 +22,8 @@ def main():
         backoff_factor=0.3,
     )
 
-    log = get_logger(os.path.basename(__file__))
+    log = structlog.get_logger(os.path.basename(__file__))
+    log = log.bind(logger=os.path.basename(__file__))
 
     messages = {}
 
@@ -30,7 +31,7 @@ def main():
 
         track_id = body.decode()
         log.info(
-            "🔉 Grabbed from the queue",
+            "🔉 Grabbed track from the queue",
             id=track_id,
         )
 

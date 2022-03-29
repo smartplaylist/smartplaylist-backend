@@ -18,6 +18,7 @@ READING_QUEUE_NAME = "artists"
 WRITING_QUEUE_NAME = "albums"
 
 log = get_logger(os.path.basename(__file__))
+log = log.bind(logger=os.path.basename(__file__))
 
 
 def filter_album(album):

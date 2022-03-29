@@ -26,6 +26,7 @@ def main():
         auth_manager=SpotifyPKCE(scope=SPOTIFY_SCOPE, open_browser=False)
     )
     log = get_logger(os.path.basename(__file__))
+    log = log.bind(logger=os.path.basename(__file__))
 
     results = sp.current_user_followed_artists(limit=50)
     artists = results["artists"]["items"]
