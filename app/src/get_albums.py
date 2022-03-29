@@ -17,13 +17,22 @@ SPOTIFY_MARKET = os.environ["SPOTIFY_MARKET"]
 READING_QUEUE_NAME = "artists"
 WRITING_QUEUE_NAME = "albums"
 
+log = get_logger(os.path.basename(__file__))
+
+
+def filter_album(album):
+    return (
+        album["release_date"] >= "2020"
+        and album["album_type"] != "compilation"
+        and album["artists"][0]["name"] != "Various Artists"
+    )
+
 
 def main():
     consume_channel = broker.create_channel(READING_QUEUE_NAME)
     publish_channel = broker.create_channel(WRITING_QUEUE_NAME)
     db_connection, cursor = db.init_connection()
     sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials())
-    log = get_logger(os.path.basename(__file__))
 
     def callback(ch, method, properties, body):
         """Handle received artist's data from the queue"""
@@ -123,9 +132,10 @@ def main():
                     number=i + 1,
                     status="saved",
                 )
-                # Only get details for albums newer and released in 2020
+
+                # Only publish (to get details) for albums that pass the test
                 # Should this be here? Where should I filter this?
-                if item["release_date"] >= "2020":
+                if filter_album(item):
                     publish_channel.basic_publish(
                         exchange="",
                         routing_key=WRITING_QUEUE_NAME,
