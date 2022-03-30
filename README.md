@@ -12,6 +12,17 @@ It will run Postgres, Rabbit, REST API server, web app and a Python data grabbin
 
 Check the data here: <http://localhost:8080/?pgsql=db&username=postgres&db=spotify&ns=public&select=tracks>
 
+## Working with PostgreSQL
+
+* Backup: `docker exec -ti spotify-grabtrack-db-1 pg_dump -U postgres -W -F c spotify -f /pg_backup/2022-03-31-backup.psql`
+* Restore: `docker exec -ti spotify-grabtrack-db-1 pg_dump -U postgres -W -F c spotify -f /pg_backup/2022-03-31-backup.psql`
+
+Or
+
+* Login to db Docker: `docker exec -ti spotify-grabtrack-db-1 bash --login`
+* Backup database: `pg_dump -U postgres -W -F c spotify > /pgdata/2022-03-31-backup.psql`
+* Restore: `pg_restore -U postgres -d pg_import_test /pgdata/2022-03-31-backup.psql`
+
 ## Work with alembic (database migrations)
 
 1. Have the stack working (you need a running database) `docker-compose -f stack.yml up -d`
@@ -46,12 +57,12 @@ Usage and documentation: <https://postgrest.org/en/stable/api.html#operators>
 
 After building the stack, run
 
-- `docker run -ti --rm --network spotify-grabtrack_default -p 3001:3001 -v $(pwd)/www/app/src:/app/src --env-file .env --name www spotify-grabtrack_www sh --login` to enter the www container
-- `yarn start` to start the web server. On MacOS starting might take >30 seconds due to slow Docker mounts.
-- Open the app in your browser <http://localhost:3001/>
+* `docker run -ti --rm --network spotify-grabtrack_default -p 3001:3001 -v $(pwd)/www/app/src:/app/src --env-file .env --name www spotify-grabtrack_www sh --login` to enter the www container
+* `yarn start` to start the web server. On MacOS starting might take >30 seconds due to slow Docker mounts.
+* Open the app in your browser <http://localhost:3001/>
 
 ## Other
 
-- Test application code: `docker run -ti --rm --network spotify-grabtrack_default -v $(pwd)/app/src:/app --env-file .env --name app spotify-grabtrack_app sh --login`
-- Enter application container `docker run -ti --rm --network spotify-grabtrack_default -v $(pwd)/app/src:/app --env-file .env spotify-grabtrack_app sh --login`
-- Inside the container `pipenv run python get_followed_artists.py`
+* Test application code: `docker run -ti --rm --network spotify-grabtrack_default -v $(pwd)/app/src:/app --env-file .env --name app spotify-grabtrack_app sh --login`
+* Enter application container `docker run -ti --rm --network spotify-grabtrack_default -v $(pwd)/app/src:/app --env-file .env spotify-grabtrack_app sh --login`
+* Inside the container `pipenv run python get_followed_artists.py`

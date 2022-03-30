@@ -36,6 +36,7 @@ services:
             PGDATA: /pgdata
         volumes:
             - ./pgdata:/pgdata
+            - ../spotify-grabtrack-backups:/pg_backup
 
     adminer:
         image: adminer:4.8.1
