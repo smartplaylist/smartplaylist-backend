@@ -15,7 +15,7 @@ Check the data here: <http://localhost:8080/?pgsql=db&username=postgres&db=spoti
 ## Working with PostgreSQL
 
 * Backup: `docker exec -ti spotify-grabtrack-db-1 pg_dump -U postgres -W -F c spotify -f /pg_backup/2022-03-31-backup.psql`
-* Restore: `docker exec -ti spotify-grabtrack-db-1 pg_dump -U postgres -W -F c spotify -f /pg_backup/2022-03-31-backup.psql`
+* Restore: `docker exec -ti spotify-grabtrack-db-1 pg_restore -U postgres -d spotify /pg_backup/2022-03-30-backup.psql`
 
 Or
 
