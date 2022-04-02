@@ -51,6 +51,13 @@ def main():
                     False,
                 ),
             )
+        except psycopg2.errors.UniqueViolation as e:
+            log.info(
+                "👨🏽‍🎤 Artist exists", id=item["id"], name=item["name"], status="skipped"
+            )
+        except Exception as e:
+            log.exception("Unhandled exception")
+        else:
             channel_albums.basic_publish(
                 exchange="",
                 routing_key=CHANNEL_ALBUMS_NAME,
@@ -69,13 +76,6 @@ def main():
                     delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
                 ),
             )
-        except psycopg2.errors.UniqueViolation as e:
-            log.info(
-                "👨🏽‍🎤 Artist exists", id=item["id"], name=item["name"], status="skipped"
-            )
-        except Exception as e:
-            log.exception("Unhandled exception")
-        else:
             log.info(
                 "👨🏽‍🎤 Artist saved", id=item["id"], name=item["name"], status="saved"
             )

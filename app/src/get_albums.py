@@ -1,7 +1,9 @@
 from datetime import date
 import json
+from nis import match
 import os
 import sys
+from unittest import case
 
 import pika
 import psycopg2.errors
@@ -23,7 +25,7 @@ log = log.bind(logger=os.path.basename(__file__))
 
 def filter_album(album):
     return (
-        album["release_date"] >= "2020"
+        album["release_date"] >= "2021"
         and album["album_type"] != "compilation"
         and album["artists"][0]["name"] != "Various Artists"
     )
@@ -95,6 +97,13 @@ def main():
             artists = []
             for artist in item["artists"]:
                 artists.append(artist["name"])
+            release_date = item["release_date"]
+
+            if item["release_date_precision"] == "year":
+                release_date += "-01-01"
+            elif item["release_date_precision"] == "month":
+                release_date += "-01"
+
             try:
                 cursor.execute(
                     "INSERT INTO albums (spotify_id, name, main_artist, all_artists, from_discography_of, album_group, album_type, release_date, release_date_precision, total_tracks, from_discography_of_spotify_id, main_artist_spotify_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);",
@@ -106,7 +115,7 @@ def main():
                         artist_name,
                         item["album_group"],
                         item["album_type"],
-                        item["release_date"],
+                        release_date,
                         item["release_date_precision"],
                         item["total_tracks"],
                         artist_id,

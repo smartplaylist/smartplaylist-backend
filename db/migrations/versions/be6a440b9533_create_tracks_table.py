@@ -15,41 +15,50 @@ down_revision = "dd48b2f5e3fa"
 branch_labels = None
 depends_on = None
 
+# TODO: change float to int where possible
+
 
 def upgrade():
     op.create_table(
         "tracks",
-        sa.Column("id", sa.Integer, primary_key=True),
         sa.Column("name", sa.Text, nullable=False),
         sa.Column("main_artist", sa.Text, nullable=False),
         sa.Column("from_album", sa.Text, nullable=False),
         sa.Column("album_artist", sa.Text, nullable=False),
-        sa.Column("main_artist_popularity", sa.Integer, nullable=True),
+        sa.Column("main_artist_popularity", sa.SmallInteger, nullable=True),
         sa.Column("main_artist_followers", sa.Integer, nullable=True),
         sa.Column(
             "all_artists", sa.dialects.postgresql.ARRAY(sa.String()), nullable=False
         ),
-        sa.Column("release_date", sa.Text, nullable=False),
+        sa.Column("release_date", sa.Date, nullable=False),
         sa.Column("genres", sa.dialects.postgresql.ARRAY(sa.String()), nullable=True),
-        sa.Column("popularity", sa.Integer, nullable=True),
-        sa.Column("track_number", sa.Integer, nullable=False),
-        sa.Column("disc_number", sa.Integer, nullable=False),
+        sa.Column("popularity", sa.SmallInteger, nullable=True),
+        sa.Column("track_number", sa.SmallInteger, nullable=False),
+        sa.Column("disc_number", sa.SmallInteger, nullable=False),
         sa.Column("duration_ms", sa.Integer, nullable=False),
         sa.Column("explicit", sa.Boolean, nullable=False),
-        sa.Column("danceability", sa.Float(precision=5), nullable=True),
-        sa.Column("energy", sa.Float(precision=5), nullable=True),
-        sa.Column("key", sa.Integer, nullable=True),
-        sa.Column("mode", sa.Integer, nullable=True),
-        sa.Column("speechiness", sa.Float(precision=5), nullable=True),
-        sa.Column("acousticness", sa.Float(precision=5), nullable=True),
-        sa.Column("instrumentalness", sa.Float(precision=5), nullable=True),
-        sa.Column("liveness", sa.Float(precision=5), nullable=True),
-        sa.Column("valence", sa.Float(precision=5), nullable=True),
-        sa.Column("tempo", sa.Float(precision=5), nullable=True),
-        sa.Column("time_signature", sa.Integer, nullable=True),
-        sa.Column("loudness", sa.Float(precision=5), nullable=True),
+        sa.Column("key", sa.SmallInteger, nullable=True),
+        sa.Column("mode_is_major", sa.Boolean, nullable=True),
+        sa.Column("time_signature", sa.SmallInteger, nullable=True),
+        sa.Column("danceability", sa.SmallInteger, nullable=True),
+        sa.Column("energy", sa.SmallInteger, nullable=True),
+        sa.Column("speechiness", sa.SmallInteger, nullable=True),
+        sa.Column("acousticness", sa.SmallInteger, nullable=True),
+        sa.Column("instrumentalness", sa.SmallInteger, nullable=True),
+        sa.Column("liveness", sa.SmallInteger, nullable=True),
+        sa.Column("valence", sa.SmallInteger, nullable=True),
+        sa.Column("tempo", sa.SmallInteger, nullable=True),
+        sa.Column("loudness", sa.SmallInteger, nullable=True),
+        sa.Column("danceability_raw", sa.Float(precision=5), nullable=True),
+        sa.Column("energy_raw", sa.Float(precision=5), nullable=True),
+        sa.Column("speechiness_raw", sa.Float(precision=5), nullable=True),
+        sa.Column("acousticness_raw", sa.Float(precision=5), nullable=True),
+        sa.Column("instrumentalness_raw", sa.Float(precision=5), nullable=True),
+        sa.Column("liveness_raw", sa.Float(precision=5), nullable=True),
+        sa.Column("valence_raw", sa.Float(precision=5), nullable=True),
+        sa.Column("tempo_raw", sa.Float(precision=5), nullable=True),
         sa.Column("preview_url", sa.Text, nullable=True),
-        sa.Column("spotify_id", sa.Text, nullable=False),
+        sa.Column("spotify_id", sa.Text, primary_key=True),
         sa.Column("from_album_spotify_id", sa.Text, nullable=False),
         sa.Column("album_artist_spotify_id", sa.Text, nullable=False),
         sa.Column("all_artists_string", sa.Text, nullable=True),
@@ -68,7 +77,6 @@ def upgrade():
         ),
     )
 
-    op.create_unique_constraint("unique_tracks_spotify_id", "tracks", ["spotify_id"])
     op.create_unique_constraint(
         "unique_tracks_main_artist_name_duration",
         "tracks",

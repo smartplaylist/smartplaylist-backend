@@ -60,11 +60,17 @@ def main():
         album_artist = message["album_artist"]
         album_artist_spotify_id = message["album_artist_spotify_id"]
 
+        log.info("💿 Processing", spotify_id=album_id, album=album_name)
+
         result = sp.album(album_id=album_id)
         update_album(cursor, result)
 
         tracks = result["tracks"]["items"]
         album_release_date = result["release_date"]
+        if len(album_release_date) == 4:
+            album_release_date += "-01-01"
+        elif len(album_release_date) == 7:
+            album_release_date += "-01"
 
         for i, item in enumerate(tracks):
             artists = []

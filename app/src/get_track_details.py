@@ -1,3 +1,4 @@
+import math
 import os
 import sys
 
@@ -66,30 +67,34 @@ def main():
                         id=k,
                         status="skipped",
                     )
-                    # log.info("tracks", tracks=tracks)
-                    # log.info("messsages", messages=messages)
-                    # log.info("k", k=k)
-                    # log.info("v", v=v)
                     ch.basic_ack(messages[v["id"]])
                     continue
 
                 try:
                     cursor.execute(
-                        "UPDATE tracks SET popularity=%s, danceability=%s, energy=%s, key=%s, loudness=%s, mode=%s, speechiness=%s, acousticness=%s, instrumentalness=%s, liveness=%s, valence=%s, tempo=%s, time_signature=%s WHERE spotify_id=%s",
+                        "UPDATE tracks SET popularity=%s, key=%s, loudness=%s, mode_is_major=%s, danceability=%s, energy=%s, speechiness=%s, acousticness=%s, instrumentalness=%s, liveness=%s, valence=%s, tempo=%s, time_signature=%s, danceability_raw=%s, energy_raw=%s, speechiness_raw=%s, acousticness_raw=%s, instrumentalness_raw=%s, liveness_raw=%s, valence_raw=%s, tempo_raw=%s WHERE spotify_id=%s;",
                         (
                             v["popularity"],
-                            v["danceability"] * 1000,
-                            v["energy"] * 1000,
                             v["key"],
                             v["loudness"],
-                            v["mode"],
-                            v["speechiness"] * 1000,
-                            v["acousticness"] * 1000,
-                            v["instrumentalness"] * 1000,
-                            v["liveness"] * 1000,
-                            v["valence"] * 1000,
+                            (v["mode"] == 1),
+                            math.ceil(v["danceability"] * 1000),
+                            math.ceil(v["energy"] * 1000),
+                            math.ceil(v["speechiness"] * 1000),
+                            math.ceil(v["acousticness"] * 1000),
+                            math.ceil(v["instrumentalness"] * 1000),
+                            math.ceil(v["liveness"] * 1000),
+                            math.ceil(v["valence"] * 1000),
                             v["tempo"],
                             v["time_signature"],
+                            v["danceability"],
+                            v["energy"],
+                            v["speechiness"],
+                            v["acousticness"],
+                            v["instrumentalness"],
+                            v["liveness"],
+                            v["valence"],
+                            v["tempo"],
                             v["id"],
                         ),
                     )
