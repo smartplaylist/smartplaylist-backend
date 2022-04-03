@@ -1,18 +1,20 @@
-import os
 import json
+import os
 import sys
 
 import pika
 import psycopg2.errors
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-from structlog import get_logger
 
 import imports.broker as broker
 import imports.db as db
+from imports.logging import get_logger
 
 READING_QUEUE_NAME = "albums"
 WRITING_QUEUE_NAME = "tracks"
+
+log = get_logger(os.path.basename(__file__))
 
 
 def main():
@@ -41,9 +43,12 @@ def main():
     consume_channel = broker.create_channel(READING_QUEUE_NAME)
     publish_channel = broker.create_channel(WRITING_QUEUE_NAME)
     db_connection, cursor = db.init_connection()
-    sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials())
-    log = get_logger(os.path.basename(__file__))
-    log = log.bind(logger=os.path.basename(__file__))
+    sp = spotipy.Spotify(
+        auth_manager=SpotifyClientCredentials(),
+        retries=3,
+        status_retries=3,
+        backoff_factor=0.3,
+    )
 
     # Build artist data array to add it to the tracks
     cursor.execute("SELECT name, genres, popularity, followers FROM artists")

@@ -6,14 +6,16 @@ import pika
 import psycopg2.errors
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-from structlog import get_logger
 
 import imports.broker as broker
 import imports.db as db
+from imports.logging import get_logger
 
 
 CHANNEL_RELATED_ARTISTS_NAME = "related_artists"
 CHANNEL_ALBUMS_NAME = "artists"
+
+log = get_logger(os.path.basename(__file__))
 
 
 def main():
@@ -38,8 +40,6 @@ def main():
     channel_albums = broker.create_channel(CHANNEL_ALBUMS_NAME)
     db_connection, cursor = db.init_connection()
     sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials())
-    log = get_logger(os.path.basename(__file__))
-    log = log.bind(logger=os.path.basename(__file__))
 
     def callback(ch, method, properties, body):
         message = json.loads(body.decode())

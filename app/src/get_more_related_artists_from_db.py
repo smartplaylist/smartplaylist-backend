@@ -5,21 +5,21 @@ import sys
 import pika
 import psycopg2.errors
 
-from structlog import get_logger
 
 import imports.broker as broker
 import imports.db as db
+from imports.logging import get_logger
 
 
 CHANNEL_RELATED_ARTISTS_NAME = "related_artists"
 CHANNEL_ALBUMS_NAME = "artists"
 
+log = get_logger(os.path.basename(__file__))
+
 
 def main():
     channel_albums = broker.create_channel(CHANNEL_ALBUMS_NAME)
     db_connection, cursor = db.init_connection()
-    log = get_logger(os.path.basename(__file__))
-    log = log.bind(logger=os.path.basename(__file__))
 
     # TODO: Not to import same artists over and over again, we have to
     # change the WHERE caluse manually (changing the `created_at` date)

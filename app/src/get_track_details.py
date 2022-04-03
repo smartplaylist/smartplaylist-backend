@@ -4,13 +4,15 @@ import sys
 
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-import structlog
 
 import imports.broker as broker
 import imports.db as db
+from imports.logging import get_logger
 
 READING_QUEUE_NAME = "tracks"
 PREFETCH_COUNT = 50
+
+log = get_logger(os.path.basename(__file__))
 
 
 def main():
@@ -18,28 +20,23 @@ def main():
     db_connection, cursor = db.init_connection()
     sp = spotipy.Spotify(
         auth_manager=SpotifyClientCredentials(),
-        retries=10,
+        retries=3,
         status_retries=3,
         backoff_factor=0.3,
     )
-
-    log = structlog.get_logger(os.path.basename(__file__))
-    log = log.bind(logger=os.path.basename(__file__))
 
     messages = {}
 
     def callback(ch, method, properties, body):
 
         track_id = body.decode()
-        log.info(
-            "🔉 Grabbed track from the queue",
-            id=track_id,
-        )
-
         messages[track_id] = method.delivery_tag
 
         # Process PREFETCH_COUNT messages at once
         if len(messages) >= PREFETCH_COUNT:
+            log.info(
+                "🔉 Processing %s messages" % PREFETCH_COUNT,
+            )
 
             tracks = {}
 

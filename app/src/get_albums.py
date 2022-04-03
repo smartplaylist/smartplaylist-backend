@@ -1,26 +1,22 @@
 from datetime import date
 import json
-from nis import match
 import os
 import sys
-from unittest import case
 
 import pika
 import psycopg2.errors
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-from structlog import get_logger
 
 import imports.broker as broker
 import imports.db as db
-
+from imports.logging import get_logger
 
 SPOTIFY_MARKET = os.environ["SPOTIFY_MARKET"]
 READING_QUEUE_NAME = "artists"
 WRITING_QUEUE_NAME = "albums"
 
 log = get_logger(os.path.basename(__file__))
-log = log.bind(logger=os.path.basename(__file__))
 
 
 def filter_album(album):

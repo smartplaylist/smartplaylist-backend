@@ -6,15 +6,17 @@ import pika
 import psycopg2.errors
 import spotipy
 from spotipy.oauth2 import SpotifyPKCE
-from structlog import get_logger
 
 import imports.broker as broker
 import imports.db as db
+from imports.logging import get_logger
 
 
 CHANNEL_ALBUMS_NAME = "artists"
 CHANNEL_RELATED_ARTISTS_NAME = "related_artists"
 SPOTIFY_SCOPE = "user-follow-read"
+
+log = get_logger(os.path.basename(__file__))
 
 
 def main():
@@ -25,8 +27,6 @@ def main():
     sp = spotipy.Spotify(
         auth_manager=SpotifyPKCE(scope=SPOTIFY_SCOPE, open_browser=False)
     )
-    log = get_logger(os.path.basename(__file__))
-    log = log.bind(logger=os.path.basename(__file__))
 
     results = sp.current_user_followed_artists(limit=50)
     artists = results["artists"]["items"]
