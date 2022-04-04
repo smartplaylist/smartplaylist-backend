@@ -15,8 +15,6 @@ down_revision = "dd48b2f5e3fa"
 branch_labels = None
 depends_on = None
 
-# TODO: change float to int where possible
-
 
 def upgrade():
     op.create_table(

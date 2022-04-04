@@ -21,8 +21,6 @@ def main():
     channel_albums = broker.create_channel(CHANNEL_ALBUMS_NAME)
     db_connection, cursor = db.init_connection()
 
-    # TODO: Not to import same artists over and over again, we have to
-    # change the WHERE caluse manually (changing the `created_at` date)
     cursor.execute("SELECT spotify_id, name FROM artists WHERE has_related='0'")
     artist_data = cursor.fetchall()
 
