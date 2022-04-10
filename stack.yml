@@ -47,6 +47,7 @@ services:
 
     broker:
         image: rabbitmq:3.9.13-management-alpine
+        hostname: ${RABBITMQ_HOSTNAME-grabtrack_broker}
         restart: always
         environment:
             RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER-guest}
