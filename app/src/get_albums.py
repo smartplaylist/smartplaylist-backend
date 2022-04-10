@@ -4,9 +4,9 @@ import os
 import sys
 
 import pika
+import psycopg2.errors
 import requests_cache
 from requests_cache import RedisCache
-import psycopg2.errors
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 
