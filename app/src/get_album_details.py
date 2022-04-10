@@ -4,6 +4,8 @@ import sys
 
 import pika
 import psycopg2.errors
+import requests_cache
+from requests_cache import RedisCache
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 
@@ -15,6 +17,9 @@ READING_QUEUE_NAME = "albums"
 WRITING_QUEUE_NAME = "tracks"
 
 log = get_logger(os.path.basename(__file__))
+requests_cache.install_cache(
+    "grabtrack_redis_cache", RedisCache(host="redis", port=6379)
+)
 
 
 def main():

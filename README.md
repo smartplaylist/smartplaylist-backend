@@ -61,6 +61,10 @@ After building the stack, run
 * `yarn start` to start the web server. On MacOS starting might take >30 seconds due to slow Docker mounts.
 * Open the app in your browser <http://localhost:3001/>
 
+## Redis Insights
+
+* `docker run -p 8001:8001 --network spotify-grabtrack_default redislabs/redisinsight:latest`
+
 ## Other
 
 * Test application code: `docker run -ti --rm --network spotify-grabtrack_default -v $(pwd)/app/src:/app --env-file .env --name app spotify-grabtrack_app sh --login`

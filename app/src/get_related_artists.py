@@ -4,6 +4,8 @@ import sys
 
 import pika
 import psycopg2.errors
+import requests_cache
+from requests_cache import RedisCache
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 
@@ -16,6 +18,9 @@ CHANNEL_RELATED_ARTISTS_NAME = "related_artists"
 CHANNEL_ALBUMS_NAME = "artists"
 
 log = get_logger(os.path.basename(__file__))
+requests_cache.install_cache(
+    "grabtrack_redis_cache", RedisCache(host="redis", port=6379)
+)
 
 
 def main():
