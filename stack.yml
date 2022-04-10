@@ -81,3 +81,9 @@ services:
             - ./redis_cache:/data
             - ./conf/redis.conf:/conf/redis.conf
         command: redis-server /conf/redis.conf
+
+    redisinsights:
+        image: redislabs/redisinsight:latest
+        restart: always
+        ports:
+            - 8001:8001
