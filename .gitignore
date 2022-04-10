@@ -7,5 +7,6 @@ __pycache__/
 .env
 
 pgdata/
+rabbitmq_mnesia_dir/
 redis_cache/
 _NOTES*

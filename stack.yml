@@ -3,6 +3,7 @@ version: "3.1"
 services:
     www:
         build: ./www
+        restart: always
         ports:
             - 3001:3001
         depends_on:
@@ -46,15 +47,20 @@ services:
 
     broker:
         image: rabbitmq:3.9.13-management-alpine
+        restart: always
         environment:
             RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER-guest}
             RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS-guest}
+            RABBITMQ_MNESIA_DIR: /rabbitmq_mnesia_dir
+        volumes:
+            - ./rabbitmq_mnesia_dir:/rabbitmq_mnesia_dir
         ports:
             - 15672:15672
             - 5672:5672
 
     api:
         image: postgrest/postgrest
+        restart: always
         ports:
             - 3000:3000
         environment:
@@ -67,9 +73,16 @@ services:
 
     redis:
         image: redis:latest
+        restart: always
         ports:
             - 6397:6397
         volumes:
             - ./redis_cache:/data
             - ./conf/redis.conf:/conf/redis.conf
         command: redis-server /conf/redis.conf
+
+    redisinsights:
+        image: redislabs/redisinsight:latest
+        restart: always
+        ports:
+            - 8001:8001

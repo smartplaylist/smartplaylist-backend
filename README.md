@@ -7,10 +7,9 @@
 1. Access Admier: <http://localhost:8080/?pgsql=db&username=postgres>
 1. Open RabbitMQ GUI: <http://localhost:15672/>. Default credentials are `guest`/`guest`
 1. Open the web app: <http://localhost:3001/>
+1. Open RedisInsights: <http://localhost:8001/>
 
-It will run Postgres, Rabbit, REST API server, web app and a Python data grabbing script. Python will try to grab data before database is available so give it a few seconds and run `docker start spotify-grabtrack-app-1` it will grab data from Spotify API and save it to the database.
-
-Check the data here: <http://localhost:8080/?pgsql=db&username=postgres&db=spotify&ns=public&select=tracks>
+It will run Postgres, Rabbit, Redis for caching requests, RedisInsights for a GUI for Redis, a REST API server and a web app.
 
 ## Working with PostgreSQL
 
@@ -33,7 +32,7 @@ Or
 
 ## Running the listeners
 
-Listeners are checking for Rabbit messages and downloading arist, alubm and track data from Spotify.
+Listeners are checking for Rabbit messages and downloading artist, album and track data from Spotify API.
 
 1. Get followed artists `docker run -ti --rm --network spotify-grabtrack_default -p 8083:8083 -v $(pwd)/app/src:/app --env-file .env spotify-grabtrack_app pipenv run python get_followed_artists.py`
 1. Run related artists listener: `docker run -ti --rm --network spotify-grabtrack_default -v $(pwd)/app/src:/app --env-file .env spotify-grabtrack_app pipenv run python get_related_artists.py`
@@ -67,6 +66,5 @@ After building the stack, run
 
 ## Other
 
-* Test application code: `docker run -ti --rm --network spotify-grabtrack_default -v $(pwd)/app/src:/app --env-file .env --name app spotify-grabtrack_app sh --login`
 * Enter application container `docker run -ti --rm --network spotify-grabtrack_default -v $(pwd)/app/src:/app --env-file .env spotify-grabtrack_app sh --login`
 * Inside the container `pipenv run python get_followed_artists.py`
