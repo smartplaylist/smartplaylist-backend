@@ -11,7 +11,7 @@ logging.getLogger("urllib3").setLevel(log_level)
 
 def get_logger(name):
     structlog.configure(
-        wrapper_class=structlog.make_filtering_bound_logger(logging.WARN),
+        wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
     )
 
     log = structlog.get_logger(name)
