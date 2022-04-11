@@ -6,6 +6,8 @@ services:
         restart: always
         ports:
             - 3001:3001
+        logging:
+            driver: fluentd
         depends_on:
             - api
 
@@ -23,6 +25,8 @@ services:
         # - ./app/src:/app
         ports:
             - 8083:8083
+        logging:
+            driver: fluentd
         depends_on:
             - db
             - broker
@@ -38,12 +42,16 @@ services:
         volumes:
             - ./pgdata:/pgdata
             - ../spotify-grabtrack-backups:/pg_backup
+        logging:
+            driver: fluentd
 
     adminer:
         image: adminer:4.8.1
         restart: always
         ports:
             - 8080:8080
+        logging:
+            driver: fluentd
 
     broker:
         image: rabbitmq:3.9.13-management-alpine
@@ -58,6 +66,8 @@ services:
         ports:
             - 15672:15672
             - 5672:5672
+        logging:
+            driver: fluentd
 
     api:
         image: postgrest/postgrest
@@ -69,6 +79,8 @@ services:
             PGRST_DB_SCHEMA: public
             PGRST_DB_ANON_ROLE: ${POSTGRES_USER} #In production this role should not be the same as the one used for the connection
             PGRST_OPENAPI_SERVER_PROXY_URI: http://127.0.0.1:3000
+        logging:
+            driver: fluentd
         depends_on:
             - db
 
@@ -81,9 +93,13 @@ services:
             - ./redis_cache:/data
             - ./conf/redis.conf:/conf/redis.conf
         command: redis-server /conf/redis.conf
+        logging:
+            driver: fluentd
 
     redisinsights:
         image: redislabs/redisinsight:latest
         restart: always
         ports:
             - 8001:8001
+        logging:
+            driver: fluentd
