@@ -3,13 +3,23 @@
 ## Usage
 
 1. `cp .env-template .env` and edit environment variables (add Spotify credentials)
-1. Run the stack `docker-compose -f stack.yml up`
+1. Run the stack `docker-compose -f stack.yml up -d`
 1. Access Admier: <http://localhost:8080/?pgsql=db&username=postgres>
 1. Open RabbitMQ GUI: <http://localhost:15672/>. Default credentials are `guest`/`guest`
 1. Open the web app: <http://localhost:3001/>
 1. Open RedisInsights: <http://localhost:8001/>
 
 It will run Postgres, Rabbit, Redis for caching requests, RedisInsights for a GUI for Redis, a REST API server and a web app.
+
+* `docker compose -f stack.yml restart <service-name>` - restart one service
+* `docker-compose -f stack.yml up -d --no-deps --build --force-recreate <service-name>` - restart with rebuild
+* `docker-compose build --no-cache [<service_name>..]` - rebuild service's image with no cache
+
+## Logs
+
+* `docker ps` to see a list of your containers
+* `docker logs --follow <container_id>` to view and follow logs from a selected container
+* `docker-compose -f stack.yml logs --follow` view and follow logs of the whole stack
 
 ## Working with PostgreSQL
 
