@@ -10,9 +10,9 @@ services:
             driver: fluentd
             options:
                 tag: "grabt.{{.ID}}"
+                fluentd-async: "true"
         depends_on:
             - api
-            - fluentd
 
     app:
         build: ./app
@@ -32,10 +32,10 @@ services:
             driver: fluentd
             options:
                 tag: "grabt.{{.ID}}"
+                fluentd-async: "true"
         depends_on:
             - db
             - broker
-            - fluentd
 
     db:
         image: postgres:14.1-alpine
@@ -52,8 +52,7 @@ services:
             driver: fluentd
             options:
                 tag: "grabt.{{.ID}}"
-        depends_on:
-            - fluentd
+                fluentd-async: "true"
 
     adminer:
         image: adminer:4.8.1
@@ -64,8 +63,7 @@ services:
             driver: fluentd
             options:
                 tag: "grabt.{{.ID}}"
-        depends_on:
-            - fluentd
+                fluentd-async: "true"
 
     broker:
         image: rabbitmq:3.9.13-management-alpine
@@ -84,8 +82,7 @@ services:
             driver: fluentd
             options:
                 tag: "grabt.{{.ID}}"
-        depends_on:
-            - fluentd
+                fluentd-async: "true"
 
     api:
         image: postgrest/postgrest
@@ -101,9 +98,9 @@ services:
             driver: fluentd
             options:
                 tag: "grabt.{{.ID}}"
+                fluentd-async: "true"
         depends_on:
             - db
-            - fluentd
 
     redis:
         image: redis:latest
@@ -118,8 +115,7 @@ services:
             driver: fluentd
             options:
                 tag: "grabt.{{.ID}}"
-        depends_on:
-            - fluentd
+                fluentd-async: "true"
 
     redisinsights:
         image: redislabs/redisinsight:latest
@@ -130,10 +126,4 @@ services:
             driver: fluentd
             options:
                 tag: "grabt.{{.ID}}"
-        depends_on:
-            - fluentd
-
-    # fluentd:
-    #     build: ./fluentd
-    #     ports:
-    #         - 24224:24224
+                fluentd-async: "true"

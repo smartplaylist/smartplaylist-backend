@@ -49,7 +49,14 @@ def main():
     def callback(ch, method, properties, body):
         message = json.loads(body.decode())
 
-        related_artists = sp.artist_related_artists(message["spotify_id"])
+        attempts = 0
+        while attempts < 10:
+            try:
+                related_artists = sp.artist_related_artists(message["spotify_id"])
+                break
+            except Exception as e:
+                attempts += 1
+                log.exception("Unhandled exception", e=e)
 
         for i, item in enumerate(related_artists["artists"]):
             try:
@@ -90,7 +97,7 @@ def main():
                     status="skipped",
                 )
             except Exception as e:
-                log.exception("Unhandled exception")
+                log.exception("Unhandled exception", e=e)
             else:
                 log.info(
                     "👨🏽‍🎤 Artist saved",
