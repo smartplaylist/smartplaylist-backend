@@ -44,11 +44,11 @@ Or
 
 Listeners are checking for Rabbit messages and downloading artist, album and track data from Spotify API.
 
-1. Get related artists `docker run -ti --network spotify-grabtrack_default -v $(pwd)/app/src:/app --env-file .env --name get-related-albums --log-driver=fluentd --log-opt tag="{{.ImageName}}/{{.Name}}/{{.ID}}" --restart=on-failure:5 spotify-grabtrack_app pipenv run python get_related_artists.py`
-1. Run related artists listener: `docker run -ti --rm --network spotify-grabtrack_default -v $(pwd)/app/src:/app --env-file .env spotify-grabtrack_app pipenv run python get_related_artists.py`
-1. Get albums `docker run -ti --rm --network spotify-grabtrack_default -v $(pwd)/app/src:/app --env-file .env spotify-grabtrack_app pipenv run python get_albums.py`
-1. Get album details `docker run -ti --rm --network spotify-grabtrack_default -v $(pwd)/app/src:/app --env-file .env spotify-grabtrack_app pipenv run python get_album_details.py`
-1. Get track details `docker run -ti --rm --network spotify-grabtrack_default -v $(pwd)/app/src:/app --env-file .env spotify-grabtrack_app pipenv run python get_track_details.py`
+1. Get followed artists `docker run -ti --rm --network spotify-grabtrack_default -p 8083:8083 -v $(pwd)/app/src:/app --env-file .env spotify-grabtrack_app pipenv run python get_followed_artists.py`
+1. Run related artists listener: `docker run -ti --network spotify-grabtrack_default -v $(pwd)/app/src:/app --env-file .env --log-driver=fluentd --log-opt tag="gts.lsnr.{{.ImageName}}.{{.Name}}.{{.ID}}" --rm spotify-grabtrack_app pipenv run python get_related_artists.py`
+1. Get albums `docker run -ti --network spotify-grabtrack_default -v $(pwd)/app/src:/app --env-file .env --log-driver=fluentd --log-opt tag="gts.lsnr.{{.ImageName}}.{{.Name}}.{{.ID}}" --rm spotify-grabtrack_app pipenv run python get_albums.py`
+1. Get album details `docker run -ti --network spotify-grabtrack_default -v $(pwd)/app/src:/app --env-file .env --log-driver=fluentd --log-opt tag="gts.lsnr.{{.ImageName}}.{{.Name}}.{{.ID}}" --rm spotify-grabtrack_app pipenv run python get_album_details.py`
+1. Get track details `docker run -ti --network spotify-grabtrack_default -v $(pwd)/app/src:/app --env-file .env --log-driver=fluentd --log-opt tag="gts.lsnr.{{.ImageName}}.{{.Name}}.{{.ID}}" --rm spotify-grabtrack_app pipenv run python get_track_details.py`
 
 ## Get oAuth token
 

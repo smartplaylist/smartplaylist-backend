@@ -9,7 +9,7 @@ services:
         logging:
             driver: fluentd
             options:
-                tag: "grabt.{{.ID}}"
+                tag: "gts.srvc.{{.Name}}.{{.ID}}"
                 fluentd-async: "true"
         depends_on:
             - api
@@ -31,7 +31,7 @@ services:
         logging:
             driver: fluentd
             options:
-                tag: "grabt.{{.ID}}"
+                tag: "gts.srvc.{{.Name}}.{{.ID}}"
                 fluentd-async: "true"
         depends_on:
             - db
@@ -51,7 +51,7 @@ services:
         logging:
             driver: fluentd
             options:
-                tag: "grabt.{{.ID}}"
+                tag: "gts.srvc.{{.Name}}.{{.ID}}"
                 fluentd-async: "true"
 
     adminer:
@@ -62,7 +62,7 @@ services:
         logging:
             driver: fluentd
             options:
-                tag: "grabt.{{.ID}}"
+                tag: "gts.srvc.{{.Name}}.{{.ID}}"
                 fluentd-async: "true"
 
     broker:
@@ -81,7 +81,7 @@ services:
         logging:
             driver: fluentd
             options:
-                tag: "grabt.{{.ID}}"
+                tag: "gts.srvc.{{.Name}}.{{.ID}}"
                 fluentd-async: "true"
 
     api:
@@ -97,7 +97,7 @@ services:
         logging:
             driver: fluentd
             options:
-                tag: "grabt.{{.ID}}"
+                tag: "gts.srvc.{{.Name}}.{{.ID}}"
                 fluentd-async: "true"
         depends_on:
             - db
@@ -114,16 +114,16 @@ services:
         logging:
             driver: fluentd
             options:
-                tag: "grabt.{{.ID}}"
+                tag: "gts.srvc.{{.Name}}.{{.ID}}"
                 fluentd-async: "true"
 
-    redisinsights:
-        image: redislabs/redisinsight:latest
-        restart: always
-        ports:
-            - 8001:8001
-        logging:
-            driver: fluentd
-            options:
-                tag: "grabt.{{.ID}}"
-                fluentd-async: "true"
+    # redisinsights:
+    #     image: redislabs/redisinsight:latest
+    #     restart: always
+    #     ports:
+    #         - 8001:8001
+    #     logging:
+    #         driver: fluentd
+    #         options:
+    #             tag: "gts.srvc.{{.Name}}.{{.ID}}"
+    #             fluentd-async: "true"

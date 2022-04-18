@@ -17,10 +17,12 @@ from imports.logging import get_logger
 SPOTIFY_MARKET = os.environ["SPOTIFY_MARKET"]
 READING_QUEUE_NAME = "artists"
 WRITING_QUEUE_NAME = "albums"
+MAX_RETRY_ATTEMPTS = 10
 
 log = get_logger(os.path.basename(__file__))
 requests_cache.install_cache(
-    "grabtrack_redis_cache", RedisCache(host="redis", port=6379)
+    "grabtrack_redis_cache",
+    RedisCache(host="redis", port=6379, health_check_interval=30),
 )
 
 
@@ -49,31 +51,64 @@ def main():
         log.info(
             "👨🏽‍🎤 Processing",
             name=artist_name,
+            spotify_id=message["spotify_id"],
+            object="artist",
         )
 
-        results = sp.artist_albums(
-            artist_id=artist_id,
-            album_type="album,single,appears_on",
-            offset=0,
-            limit=50,
-            country=SPOTIFY_MARKET,
-        )
+        attempts = 0
+        while attempts < MAX_RETRY_ATTEMPTS:
+            try:
+                results = sp.artist_albums(
+                    artist_id=artist_id,
+                    album_type="album,single,appears_on",
+                    offset=0,
+                    limit=50,
+                    country=SPOTIFY_MARKET,
+                )
+                log.info("Trying API request", attempt=attempts)
+                break
+            except Exception as e:
+                attempts += 1
+                log.exception(
+                    "Unhandled exception", exception=e, attempt=attempts, exc_info=True
+                )
 
         if total_albums >= results["total"]:
-            log.info("No new albums", artist_id=artist_id)
+            log.info("No new albums", spotify_id=artist_id, object="artist")
             ch.basic_ack(method.delivery_tag)
             return
 
         new_albums = results["total"] - total_albums
 
-        log.info("👨🏽‍🎤 New releases", artist_id=artist_id, albums_count=new_albums)
+        log.info(
+            "👨🏽‍🎤 New releases",
+            spotify_id=artist_id,
+            albums_count=new_albums,
+            object="artist",
+        )
 
         # We need to do make several requests since data is sorted by albumy type
         # and then by release date
         # An option would be to do separate requestes for `albums` and `singles`
         items = results["items"]
         while results["next"]:
-            results = sp.next(results)
+
+            attempts = 0
+            # attemps hack because API is returning random 404 errors
+            while attempts < MAX_RETRY_ATTEMPTS:
+                try:
+                    results = sp.next(results)
+                    log.info("Trying API request", attempt=attempts)
+                    break
+                except Exception as e:
+                    attempts += 1
+                    log.exception(
+                        "Unhandled exception",
+                        exception=e,
+                        attempt=attempts,
+                        exc_info=True,
+                    )
+
             items.extend(results["items"])
 
         # Update total albums for the current artist
@@ -85,13 +120,14 @@ def main():
                 (results["total"], date.today(), artist_id),
             )
         except Exception as e:
-            log.exception("Unhandled exception")
+            log.exception("Unhandled exception", exception=e, exc_info=True)
         else:
             log.info(
                 "👨🏽‍🎤 Updated total albums",
-                artist_id=artist_id,
+                spotify_id=artist_id,
                 total_albums=results["total"],
                 prev_total_albums=total_albums,
+                object="artist",
             )
 
         for i, item in enumerate(items):
@@ -107,7 +143,7 @@ def main():
 
             try:
                 cursor.execute(
-                    "INSERT INTO albums (spotify_id, name, main_artist, all_artists, from_discography_of, album_group, album_type, release_date, release_date_precision, total_tracks, from_discography_of_spotify_id, main_artist_spotify_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);",
+                    "INSERT INTO albums (spotify_id, name, main_artist, all_artists, from_discography_of, album_group, album_type, release_date, release_date_precision, total_tracks, from_discography_of_spotify_id, main_artist_spotify_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING;",
                     (
                         item["id"],
                         item["name"],
@@ -123,46 +159,38 @@ def main():
                         item["artists"][0]["id"],
                     ),
                 )
-            except psycopg2.errors.UniqueViolation as e:
-                log.info(
-                    "💿 Album exists",
-                    id=item["id"],
-                    name=item["name"],
-                    main_artist=artists[0],
-                    number=i + 1,
-                    status="skipped",
-                )
             except Exception as e:
-                log.exception("Unhandled exception")
+                log.exception("Unhandled exception", exception=e, exc_info=True)
             else:
                 log.info(
-                    "💿 Album saved",
-                    id=item["id"],
+                    "💿 Album " + ("saved" if cursor.rowcount else "exists"),
+                    spotify_id=item["id"],
                     name=item["name"],
                     main_artist=artists[0],
-                    number=i + 1,
-                    status="saved",
+                    object="album",
                 )
 
-                # Only publish (to get details) for albums that pass the test
-                # Should this be here? Where should I filter this?
-                if filter_album(item):
-                    publish_channel.basic_publish(
-                        exchange="",
-                        routing_key=WRITING_QUEUE_NAME,
-                        body=json.dumps(
-                            {
-                                "spotify_id": item["id"],
-                                "album_name": item["name"],
-                                "album_artist": item["name"],
-                                "album_artist": artists[0],
-                                "album_artist_spotify_id": item["artists"][0]["id"],
-                            }
-                        ),
-                        properties=pika.BasicProperties(
-                            delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
-                        ),
-                    )
+                # Publish to queue only if it was added (which means it was not in the db yet)
+                if cursor.rowcount:
+                    # Only publish (to get details) for albums that pass the test
+                    # Should this be here? Where should I filter this?
+                    if filter_album(item):
+                        publish_channel.basic_publish(
+                            exchange="",
+                            routing_key=WRITING_QUEUE_NAME,
+                            body=json.dumps(
+                                {
+                                    "spotify_id": item["id"],
+                                    "album_name": item["name"],
+                                    "album_artist": item["name"],
+                                    "album_artist": artists[0],
+                                    "album_artist_spotify_id": item["artists"][0]["id"],
+                                }
+                            ),
+                            properties=pika.BasicProperties(
+                                delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
+                            ),
+                        )
 
         ch.basic_ack(method.delivery_tag)
 

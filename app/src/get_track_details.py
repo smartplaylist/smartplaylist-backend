@@ -13,10 +13,12 @@ from imports.logging import get_logger
 
 READING_QUEUE_NAME = "tracks"
 PREFETCH_COUNT = 50
+MAX_RETRY_ATTEMPTS = 10
 
 log = get_logger(os.path.basename(__file__))
 requests_cache.install_cache(
-    "grabtrack_redis_cache", RedisCache(host="redis", port=6379)
+    "grabtrack_redis_cache",
+    RedisCache(host="redis", port=6379, health_check_interval=30),
 )
 
 
@@ -45,7 +47,25 @@ def main():
 
             tracks = {}
 
-            result_audio_features = sp.audio_features(tracks=messages.keys())
+            attempts = 0
+            while attempts < MAX_RETRY_ATTEMPTS:
+                try:
+                    result_audio_features = sp.audio_features(tracks=messages.keys())
+                    log.info(
+                        "Trying API request",
+                        attempt=attempts,
+                        object="track",
+                    )
+                    break
+                except Exception as e:
+                    attempts += 1
+                    log.exception(
+                        "Unhandled exception",
+                        exception=e,
+                        attempt=attempts,
+                        object="track",
+                        exc_info=True,
+                    )
             for i, v in enumerate(result_audio_features):
                 if not v or v is None:
                     log.info("🔉 No audio feature data", id=track_id)
@@ -54,20 +74,40 @@ def main():
                     continue
                 tracks[v["id"]] = v
 
-            result_tracks = sp.tracks(tracks=messages.keys(), market=[])
+            attempts = 0
+            while attempts < MAX_RETRY_ATTEMPTS:
+                try:
+                    result_tracks = sp.tracks(tracks=messages.keys(), market=[])
+                    log.info(
+                        "Trying API request",
+                        attempt=attempts,
+                        object="track",
+                    )
+                    break
+                except Exception as e:
+                    attempts += 1
+                    log.exception(
+                        "Unhandled exception",
+                        exception=e,
+                        attempt=attempts,
+                        object="track",
+                        exc_info=True,
+                    )
+
             for i, v in enumerate(result_tracks["tracks"]):
                 if not v["id"] in tracks:
                     tracks[v["id"]] = {"id": v["id"]}
                 tracks[v["id"]]["popularity"] = v["popularity"]
 
             for k, v in tracks.items():
-                log.info("🔉 Processing", id=k)
+                log.info("🔉 Processing", spotify_id=k, object="track")
 
                 if not "danceability" in v:
                     log.info(
                         "🔉 Skipping due to no audio_feature data",
-                        id=k,
+                        spotify_id=k,
                         status="skipped",
+                        object="track",
                     )
                     ch.basic_ack(messages[v["id"]])
                     continue

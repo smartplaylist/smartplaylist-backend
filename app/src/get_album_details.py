@@ -15,16 +15,19 @@ from imports.logging import get_logger
 
 READING_QUEUE_NAME = "albums"
 WRITING_QUEUE_NAME = "tracks"
+MAX_RETRY_ATTEMPTS = 10
 
 log = get_logger(os.path.basename(__file__))
-requests_cache.install_cache(
-    "grabtrack_redis_cache", RedisCache(host="redis", port=6379)
-)
+# requests_cache.install_cache(
+#     "grabtrack_redis_cache",
+#     RedisCache(host="redis", port=6379, health_check_interval=30),
+# )
 
 
 def main():
     def update_album(cursor, data):
         copyrights = []
+
         for copyright in data["copyrights"]:
             copyrights.append(copyright["text"])
         try:
@@ -38,12 +41,9 @@ def main():
                 ),
             )
         except Exception as e:
-            log.error("Unhandled exception", exc_info=True)
+            log.error("Unhandled exception", exception=e, exc_info=True)
         else:
-            log.info(
-                "💿 Album's details updated",
-                id=data["id"],
-            )
+            log.info("💿 Album's details updated", spotify_id=data["id"], object="album")
 
     consume_channel = broker.create_channel(READING_QUEUE_NAME)
     publish_channel = broker.create_channel(WRITING_QUEUE_NAME)
@@ -63,21 +63,45 @@ def main():
     }
 
     def callback(ch, method, properties, body):
-
         message = json.loads(body.decode())
         album_id = message["spotify_id"]
         album_name = message["album_name"]
         album_artist = message["album_artist"]
         album_artist_spotify_id = message["album_artist_spotify_id"]
 
-        log.info("💿 Processing", spotify_id=album_id, album=album_name)
+        log.info(
+            "💿 Processing album", spotify_id=album_id, album=album_name, object="album"
+        )
 
-        result = sp.album(album_id=album_id)
+        attempts = 0
+        while attempts < MAX_RETRY_ATTEMPTS:
+            try:
+                result = sp.album(album_id=album_id)
+                log.info(
+                    "Trying API request",
+                    attempt=attempts,
+                    spotify_id=album_id,
+                    object="album",
+                )
+                break
+            except Exception as e:
+                attempts += 1
+                log.exception(
+                    "Unhandled exception",
+                    exception=e,
+                    attempt=attempts,
+                    spotify_id=album_id,
+                    object="album",
+                    exc_info=True,
+                )
+
         update_album(cursor, result)
 
         tracks = result["tracks"]["items"]
         album_release_date = result["release_date"]
         if len(album_release_date) == 4:
+            if "0000" == album_release_date:
+                album_release_date = "0001"
             album_release_date += "-01-01"
         elif len(album_release_date) == 7:
             album_release_date += "-01"
@@ -103,7 +127,7 @@ def main():
 
             try:
                 cursor.execute(
-                    "INSERT INTO tracks (spotify_id, name, main_artist, main_artist_popularity, main_artist_followers, all_artists, all_artists_string, release_date, genres, genres_string, track_number, disc_number, duration_ms, explicit, preview_url, from_album, from_album_spotify_id, album_artist, album_artist_spotify_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);",
+                    "INSERT INTO tracks (spotify_id, name, main_artist, main_artist_popularity, main_artist_followers, all_artists, all_artists_string, release_date, genres, genres_string, track_number, disc_number, duration_ms, explicit, preview_url, from_album, from_album_spotify_id, album_artist, album_artist_spotify_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING;",
                     (
                         item["id"],
                         item["name"],
@@ -126,34 +150,25 @@ def main():
                         album_artist_spotify_id,
                     ),
                 )
-            except psycopg2.errors.UniqueViolation as e:
-                log.info(
-                    "🎧 Track exists",
-                    id=item["id"],
-                    name=item["name"],
-                    main_artist=artists[0],
-                    number=i + 1,
-                    status="skipped",
-                )
             except Exception as e:
-                log.exception("Unhandled exception")
+                log.exception("Unhandled exception", exception=e, exc_info=True)
             else:
                 log.info(
-                    "🎧 Track saved",
-                    id=item["id"],
-                    name=item["name"],
-                    main_artist=artists[0],
-                    number=i + 1,
+                    "🎧 Track " + ("saved" if cursor.rowcount else "exists"),
+                    spotify_id=item["id"],
                     status="saved",
+                    object="track",
                 )
-                publish_channel.basic_publish(
-                    exchange="",
-                    routing_key=WRITING_QUEUE_NAME,
-                    body=item["id"],
-                    properties=pika.BasicProperties(
-                        delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
-                    ),
-                )
+                # Publish to queue only if it was added (which means it was not in the db yet)
+                if cursor.rowcount:
+                    publish_channel.basic_publish(
+                        exchange="",
+                        routing_key=WRITING_QUEUE_NAME,
+                        body=item["id"],
+                        properties=pika.BasicProperties(
+                            delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
+                        ),
+                    )
 
         ch.basic_ack(method.delivery_tag)
 

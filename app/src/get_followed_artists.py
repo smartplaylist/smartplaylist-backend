@@ -45,7 +45,7 @@ def main():
     for i, item in enumerate(artists):
         try:
             cursor.execute(
-                "INSERT INTO artists (spotify_id, name, popularity, followers, genres, genres_string, has_related, total_albums) VALUES (%s, %s, %s, %s, %s, %s, %s, 0);",
+                "INSERT INTO artists (spotify_id, name, popularity, followers, genres, genres_string, has_related, total_albums) VALUES (%s, %s, %s, %s, %s, %s, %s, 0) ON CONFLICT DO NOTHING;",
                 (
                     item["id"],
                     item["name"],
@@ -56,34 +56,46 @@ def main():
                     False,
                 ),
             )
-        except psycopg2.errors.UniqueViolation as e:
-            log.info(
-                "👨🏽‍🎤 Artist exists", id=item["id"], name=item["name"], status="skipped"
-            )
         except Exception as e:
             log.exception("Unhandled exception")
         else:
-            channel_albums.basic_publish(
-                exchange="",
-                routing_key=CHANNEL_ALBUMS_NAME,
-                body=json.dumps(
-                    {"spotify_id": item["id"], "total_albums": 0, "name": item["name"]}
-                ),
-                properties=pika.BasicProperties(
-                    delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
-                ),
-            )
-            channel_related_artists.basic_publish(
-                exchange="",
-                routing_key=CHANNEL_RELATED_ARTISTS_NAME,
-                body=json.dumps({"spotify_id": item["id"], "name": item["name"]}),
-                properties=pika.BasicProperties(
-                    delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
-                ),
-            )
-            log.info(
-                "👨🏽‍🎤 Artist saved", id=item["id"], name=item["name"], status="saved"
-            )
+            # Only add to queue if it was added to the db
+            if cursor.rowcount:
+                log.info(
+                    "👨🏽‍🎤 Artist saved",
+                    id=item["id"],
+                    name=item["name"],
+                    status="saved",
+                )
+                channel_albums.basic_publish(
+                    exchange="",
+                    routing_key=CHANNEL_ALBUMS_NAME,
+                    body=json.dumps(
+                        {
+                            "spotify_id": item["id"],
+                            "total_albums": 0,
+                            "name": item["name"],
+                        }
+                    ),
+                    properties=pika.BasicProperties(
+                        delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
+                    ),
+                )
+                channel_related_artists.basic_publish(
+                    exchange="",
+                    routing_key=CHANNEL_RELATED_ARTISTS_NAME,
+                    body=json.dumps({"spotify_id": item["id"], "name": item["name"]}),
+                    properties=pika.BasicProperties(
+                        delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
+                    ),
+                )
+            else:
+                log.info(
+                    "👨🏽‍🎤 Artist exists",
+                    id=item["id"],
+                    name=item["name"],
+                    status="skipped",
+                )
 
     # Clean up and close connections
     broker.close_connection()

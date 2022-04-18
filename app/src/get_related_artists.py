@@ -19,7 +19,8 @@ CHANNEL_ALBUMS_NAME = "artists"
 
 log = get_logger(os.path.basename(__file__))
 requests_cache.install_cache(
-    "grabtrack_redis_cache", RedisCache(host="redis", port=6379)
+    "grabtrack_redis_cache",
+    RedisCache(host="redis", port=6379, health_check_interval=30),
 )
 
 
@@ -39,6 +40,8 @@ def main():
             log.info(
                 "👨🏽‍🎤 Artist's has_related updated",
                 spotify_id=spotify_id,
+                object="artist",
+                status="success",
             )
 
     consume_channel = broker.create_channel(CHANNEL_RELATED_ARTISTS_NAME)
@@ -56,12 +59,12 @@ def main():
                 break
             except Exception as e:
                 attempts += 1
-                log.exception("Unhandled exception", e=e)
+                log.exception("Unhandled exception", exception=e)
 
         for i, item in enumerate(related_artists["artists"]):
             try:
                 cursor.execute(
-                    "INSERT INTO artists (spotify_id, name, popularity, followers, genres, genres_string, related_to_spotify_id, related_to, has_related, total_albums) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 0);",
+                    "INSERT INTO artists (spotify_id, name, popularity, followers, genres, genres_string, related_to_spotify_id, related_to, has_related, total_albums) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 0) ON CONFLICT DO NOTHING;",
                     (
                         item["id"],
                         item["name"],
@@ -74,37 +77,33 @@ def main():
                         False,
                     ),
                 )
-                channel_albums.basic_publish(
-                    exchange="",
-                    routing_key=CHANNEL_ALBUMS_NAME,
-                    body=json.dumps(
-                        {
-                            "spotify_id": item["id"],
-                            "total_albums": 0,
-                            "name": item["name"],
-                        }
-                    ),
-                    properties=pika.BasicProperties(
-                        delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
-                    ),
-                )
-
-            except psycopg2.errors.UniqueViolation as e:
-                log.info(
-                    "👨🏽‍🎤 Artist exists",
-                    id=item["id"],
-                    name=item["name"],
-                    status="skipped",
-                )
             except Exception as e:
-                log.exception("Unhandled exception", e=e)
+                log.exception("Unhandled exception", exception=e)
             else:
                 log.info(
-                    "👨🏽‍🎤 Artist saved",
-                    id=item["id"],
+                    "👨🏽‍🎤 Artist " + ("saved" if cursor.rowcount else "exists"),
+                    spotify_id=item["id"],
+                    object="artist",
                     name=item["name"],
-                    status="saved",
                 )
+
+                # Only publish if it was added
+                if cursor.rowcount:
+                    channel_albums.basic_publish(
+                        exchange="",
+                        routing_key=CHANNEL_ALBUMS_NAME,
+                        body=json.dumps(
+                            {
+                                "spotify_id": item["id"],
+                                "total_albums": 0,
+                                "name": item["name"],
+                            }
+                        ),
+                        properties=pika.BasicProperties(
+                            delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
+                        ),
+                    )
+
         update_artist(message["spotify_id"])
         ch.basic_ack(method.delivery_tag)
 
