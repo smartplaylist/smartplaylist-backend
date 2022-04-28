@@ -135,6 +135,8 @@ def main():
             for artist in item["artists"]:
                 artists.append(artist["name"])
             release_date = item["release_date"]
+            if "0000" == release_date:
+                release_date = "0001"
 
             if item["release_date_precision"] == "year":
                 release_date += "-01-01"
@@ -182,7 +184,6 @@ def main():
                                 {
                                     "spotify_id": item["id"],
                                     "album_name": item["name"],
-                                    "album_artist": item["name"],
                                     "album_artist": artists[0],
                                     "album_artist_spotify_id": item["artists"][0]["id"],
                                 }
