@@ -1,6 +1,7 @@
 from multiprocessing import connection
 import os
 import psycopg2
+import psycopg2.extras
 from psycopg2 import sql
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
