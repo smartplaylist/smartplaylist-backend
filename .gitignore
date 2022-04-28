@@ -5,6 +5,7 @@ __pycache__/
 .cache
 .ini
 .env
+.conf
 
 pgdata/
 rabbitmq_mnesia_dir/
