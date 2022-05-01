@@ -4,24 +4,19 @@ import sys
 
 import pika
 import psycopg2.errors
-import requests_cache
-from requests_cache import RedisCache
 import spotipy
 from spotipy.oauth2 import SpotifyPKCE
 
 import imports.broker as broker
 import imports.db as db
 from imports.logging import get_logger
-
+import imports.requests
 
 CHANNEL_ALBUMS_NAME = "artists"
 CHANNEL_RELATED_ARTISTS_NAME = "related_artists"
 SPOTIFY_SCOPE = "user-follow-read"
 
 log = get_logger(os.path.basename(__file__))
-requests_cache.install_cache(
-    "grabtrack_redis_cache", RedisCache(host="redis", port=6379)
-)
 
 
 def main():
@@ -34,6 +29,7 @@ def main():
     )
 
     results = sp.current_user_followed_artists(limit=50)
+
     artists = results["artists"]["items"]
 
     # Iterate over results to get the full list
