@@ -101,29 +101,3 @@ services:
                 fluentd-async: "true"
         depends_on:
             - db
-
-    redis:
-        image: redis:latest
-        restart: always
-        ports:
-            - 6379:6379
-        volumes:
-            - ./redis_cache:/data
-            - ./conf/redis.conf:/conf/redis.conf
-        command: redis-server /conf/redis.conf
-        logging:
-            driver: fluentd
-            options:
-                tag: "gts.srvc.{{.Name}}.{{.ID}}"
-                fluentd-async: "true"
-
-    # redisinsights:
-    #     image: redislabs/redisinsight:latest
-    #     restart: always
-    #     ports:
-    #         - 8001:8001
-    #     logging:
-    #         driver: fluentd
-    #         options:
-    #             tag: "gts.srvc.{{.Name}}.{{.ID}}"
-    #             fluentd-async: "true"

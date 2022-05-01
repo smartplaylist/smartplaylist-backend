@@ -1,17 +1,17 @@
-from datetime import date
+from datetime import datetime, timezone
 import json
 import os
 import sys
 
 import pika
 import psycopg2.errors
-import requests_cache
-from requests_cache import RedisCache
+
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 
 import imports.broker as broker
 import imports.db as db
+import imports.requests
 from imports.logging import get_logger
 
 SPOTIFY_MARKET = os.environ["SPOTIFY_MARKET"]
@@ -20,10 +20,6 @@ WRITING_QUEUE_NAME = "albums"
 MAX_RETRY_ATTEMPTS = 10
 
 log = get_logger(os.path.basename(__file__))
-requests_cache.install_cache(
-    "grabtrack_redis_cache",
-    RedisCache(host="redis", port=6379, health_check_interval=30),
-)
 
 
 def filter_album(album):
@@ -116,8 +112,8 @@ def main():
         # It is used for determining if there are new releases in Spotify's database
         try:
             cursor.execute(
-                "UPDATE artists SET total_albums=%s, last_update=%s WHERE spotify_id=%s;",
-                (results["total"], date.today(), artist_id),
+                "UPDATE artists SET total_albums=%s, albums_updated_at=%s WHERE spotify_id=%s;",
+                (results["total"], datetime.now(timezone.utc), artist_id),
             )
         except Exception as e:
             log.exception("Unhandled exception", exception=e, exc_info=True)

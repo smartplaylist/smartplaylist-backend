@@ -26,7 +26,7 @@ def upgrade():
         sa.Column("genres", sa.dialects.postgresql.ARRAY(sa.String()), nullable=False),
         sa.Column("genres_string", sa.Text, nullable=False),
         sa.Column("total_albums", sa.SmallInteger, nullable=False),
-        sa.Column("last_update", sa.Date, nullable=True),
+        sa.Column("albums_updated_at", sa.TIMESTAMP, nullable=True),
         sa.Column("related_to", sa.Text, nullable=True),
         sa.Column("related_to_spotify_id", sa.Text, nullable=True),
         sa.Column("has_related", sa.Boolean, nullable=False),
