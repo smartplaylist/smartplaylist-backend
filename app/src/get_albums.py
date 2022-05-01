@@ -4,7 +4,6 @@ import os
 import sys
 
 import pika
-import psycopg2.errors
 
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
