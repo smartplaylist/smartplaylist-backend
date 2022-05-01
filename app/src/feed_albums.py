@@ -1,14 +1,13 @@
+import datetime
 import json
 import os
 import sys
-import datetime
 
 import pika
 
 import imports.broker as broker
 import imports.db as db
 from imports.logging import get_logger
-
 
 WRITING_QUEUE_NAME = "albums_feed_test"
 

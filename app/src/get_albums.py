@@ -11,8 +11,8 @@ from spotipy.oauth2 import SpotifyClientCredentials
 
 import imports.broker as broker
 import imports.db as db
-import imports.requests
 from imports.logging import get_logger
+import imports.requests
 
 SPOTIFY_MARKET = os.environ["SPOTIFY_MARKET"]
 READING_QUEUE_NAME = "artists"

@@ -2,7 +2,6 @@ import math
 import os
 import sys
 
-from requests_cache import RedisCache
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 
