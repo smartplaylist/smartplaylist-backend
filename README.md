@@ -7,7 +7,6 @@
 1. Access Admier: <http://localhost:8080/?pgsql=db&username=postgres>
 1. Open RabbitMQ GUI: <http://localhost:15672/>. Default credentials are `guest`/`guest`
 1. Open the web app: <http://localhost:3001/>
-1. Open RedisInsights: <http://localhost:8001/>
 
 It will run Postgres, Rabbit, Redis for caching requests, RedisInsights for a GUI for Redis, a REST API server and a web app.
 
@@ -23,12 +22,12 @@ It will run Postgres, Rabbit, Redis for caching requests, RedisInsights for a GU
 
 ## Working with PostgreSQL
 
-* Backup: `docker exec -ti spotify-grabtrack-db-1 pg_dump -U postgres -W -F c spotify -f /pg_backup/2022-03-31-backup.psql`
-* Restore: `docker exec -ti spotify-grabtrack-db-1 pg_restore -U postgres -d spotify /pg_backup/2022-03-30-backup.psql`
+* Backup: `docker exec -ti spotify-grabtrack_db_1 pg_dump -U postgres -W -F c spotify -f /pg_backup/2022-03-31-backup.psql`
+* Restore: `docker exec -ti spotify-grabtrack_db_1 pg_restore -U postgres -d spotify /pg_backup/2022-03-30-backup.psql`
 
 Or
 
-* Login to db Docker: `docker exec -ti spotify-grabtrack-db-1 bash --login`
+* Login to db Docker: `docker exec -ti spotify-grabtrack_db_1 bash --login`
 * Backup database: `pg_dump -U postgres -W -F c spotify > /pgdata/2022-03-31-backup.psql`
 * Restore: `pg_restore -U postgres -d pg_import_test /pgdata/2022-03-31-backup.psql`
 
