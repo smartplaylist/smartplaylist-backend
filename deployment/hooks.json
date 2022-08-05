@@ -1,0 +1,8 @@
+[
+    {
+        "id": "redeploy",
+        "execute-command": "/home/www/deployment/redeploy.sh",
+        "command-working-directory": "/home/www/deployment",
+        "response-message": "Redeploying the application."
+    }
+]
