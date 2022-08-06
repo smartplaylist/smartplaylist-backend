@@ -10,23 +10,10 @@ import pylast
 
 import imports.db as db
 from imports.logging import get_logger
+from imports.lastfm import get_lastfm_network
 import imports.requests
 
-LASTFM_API_KEY = os.environ["LASTFM_API_KEY"]
-LASTFM_API_SECRET = os.environ["LASTFM_API_SECRET"]
-LASTFM_USER = os.environ["LASTFM_USER"]
-LASTFM_PASSWORD = os.environ["LASTFM_PASSWORD"]
-
 log = get_logger(os.path.basename(__file__))
-
-
-def get_lastfm_network():
-    return pylast.LastFMNetwork(
-        api_key=LASTFM_API_KEY,
-        api_secret=LASTFM_API_SECRET,
-        username=LASTFM_USER,
-        password_hash=pylast.md5(LASTFM_PASSWORD),
-    )
 
 
 def get_lastfm_artist_tags(artist, lastfm):
@@ -38,7 +25,12 @@ def get_lastfm_artist_tags(artist, lastfm):
     """
     tags = []
     lastfrm_artist = pylast.Artist(artist, lastfm)
-    tags = lastfrm_artist.get_top_tags(limit=10)
+    try:
+        tags = lastfrm_artist.get_top_tags(limit=10)
+    except Exception as e:
+        log.exception("Unhandled exception", exception=e, exc_info=True)
+        # '6', 'The artist you supplied could not be found'
+        # For "Michelle Lynn Piland"
     tags = [s.item.get_name().lower() for s in tags]
     return tags
 

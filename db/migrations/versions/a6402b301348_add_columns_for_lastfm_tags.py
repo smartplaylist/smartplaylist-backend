@@ -24,7 +24,6 @@ def upgrade():
             "lastfm_tags",
             sa.dialects.postgresql.ARRAY(sa.String()),
             nullable=True,
-            insert_after="genres",
         ),
     )
     op.add_column(
@@ -33,13 +32,48 @@ def upgrade():
             "lastfm_tags_string",
             sa.String(),
             nullable=True,
-            insert_after="genres_string",
+        ),
+    )
+    op.add_column(
+        "albums",
+        sa.Column(
+            "lastfm_tags",
+            sa.dialects.postgresql.ARRAY(sa.String()),
+            nullable=True,
+        ),
+    )
+    op.add_column(
+        "albums",
+        sa.Column(
+            "lastfm_tags_string",
+            sa.String(),
+            nullable=True,
+        ),
+    )
+    op.add_column(
+        "tracks",
+        sa.Column(
+            "lastfm_tags",
+            sa.dialects.postgresql.ARRAY(sa.String()),
+            nullable=True,
+        ),
+    )
+    op.add_column(
+        "tracks",
+        sa.Column(
+            "lastfm_tags_string",
+            sa.String(),
+            nullable=True,
         ),
     )
     pass
 
 
 def downgrade():
-    op.drop_column("lastmf_tags")
-    op.drop_column("lastmf_tags_string")
+    op.drop_column("artists", "lastfm_tags")
+    op.drop_column("artists", "lastfm_tags_string")
+    op.drop_column("albums", "lastfm_tags")
+    op.drop_column("albums", "lastfm_tags_string")
+    op.drop_column("tracks", "lastfm_tags")
+    op.drop_column("tracks", "lastfm_tags_string")
     pass
