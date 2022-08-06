@@ -6,6 +6,7 @@ __pycache__/
 .env
 *.conf
 *.sqlite
+.cache-lastfm*
 
 pgdata/
 rabbitmq_mnesia_dir/

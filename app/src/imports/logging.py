@@ -11,14 +11,14 @@ logging.getLogger("urllib3").setLevel(log_level)
 
 def get_logger(name):
     structlog.configure(
-        processors=[
-            structlog.processors.add_log_level,
-            structlog.processors.TimeStamper(fmt="iso", key="ts"),
-            structlog.processors.JSONRenderer(),
-        ],
-        wrapper_class=structlog.make_filtering_bound_logger(
-            getattr(logging, log_level)
-        ),
+        # processors=[
+        #     structlog.processors.add_log_level,
+        #     structlog.processors.TimeStamper(fmt="iso", key="ts"),
+        #     structlog.processors.JSONRenderer(),
+        # ],
+        # wrapper_class=structlog.make_filtering_bound_logger(
+        #     getattr(logging, log_level)
+        # ),
     )
 
     log = structlog.get_logger(name)

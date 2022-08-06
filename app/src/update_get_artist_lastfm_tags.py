@@ -54,7 +54,7 @@ def save_lastfm_artist_tags(artist_id, tags, cursor):
 
 def main():
     db_connection, cursor = db.init_connection()
-    lastfm = get_lastfm_network()
+    lastfm = get_lastfm_network(cache_file=".cache-lastfm-api-artists")
     cursor.execute("SELECT name, spotify_id FROM artists ORDER BY created_at ASC")
     # cursor.execute(
     #     "SELECT name, spotify_id FROM artists WHERE lastfm_tags IS NULL ORDER BY created_at ASC"

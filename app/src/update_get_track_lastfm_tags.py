@@ -1,6 +1,6 @@
-"""Reads Last.fm tags for given album
+"""Reads Last.fm tags for given track
 and saves it to `lastfm_tags` and `lastfm_tags_string` columns.
-Can be run for all albums or albums with NULL in `lastfm_tags`
+Can be run for all tracks or tracks with NULL in `lastfm_tags`
 """
 import os
 import sys
@@ -17,47 +17,46 @@ import imports.requests
 log = get_logger(os.path.basename(__file__))
 
 
-def get_lastfm_album_tags(artist, album, lastfm):
-    """Get tags for an album from Last.fm API
+def get_lastfm_track_tags(artist, name, lastfm):
+    """Get tags for a track from Last.fm API
 
     Returns
     -------
     a list of lowercased tags
     """
     tags = []
-    lastfm_album = pylast.Album(artist, album, lastfm)
+    lastfm_track = pylast.Track(artist, name, lastfm)
     try:
-        tags = lastfm_album.get_top_tags()
+        tags = lastfm_track.get_top_tags()
     except Exception as e:
         log.exception("Unhandled exception", exception=e, exc_info=True)
     tags = [s.item.get_name().lower() for s in tags]
     return tags
 
 
-def save_lastfm_album_tags(spotify_id, tags, cursor):
+def save_lastfm_track_tags(spotify_id, tags, cursor):
     try:
         cursor.execute(
-            "UPDATE albums SET lastfm_tags=%s, lastfm_tags_string=%s WHERE spotify_id=%s;",
+            "UPDATE tracks SET lastfm_tags=%s, lastfm_tags_string=%s WHERE spotify_id=%s;",
             (tags, " ".join(tags), spotify_id),
         )
     except Exception as e:
         log.exception("Unhandled exception", exception=e, exc_info=True)
     else:
         log.info(
-            "💿 Added Last.fm tags to album",
+            "💿 Added Last.fm tags to track",
             spotify_id=spotify_id,
             tags=" ".join(tags),
-            object="album",
+            object="track",
         )
 
 
 def main():
     db_connection, cursor = db.init_connection()
-    lastfm = get_lastfm_network(cache_file=".cache-lastfm-api-albums")
-    # TODO: https://dellsystem.me/posts/psycopg2-offset-performance
-    # Use server-side cursors to select partial results from db
+    lastfm = get_lastfm_network(cache_file=".cache-lastfm-api-tracks")
+
     cursor.execute(
-        "SELECT main_artist, name, spotify_id FROM albums ORDER BY created_at ASC"  # WHERE lastfm_tags IS NULL
+        "SELECT main_artist, name, spotify_id FROM tracks ORDER BY created_at ASC"  # WHERE lastfm_tags IS NULL
     )
     items = cursor.fetchall()
     total = len(items)
@@ -66,9 +65,9 @@ def main():
     progress_bar(i, total)
 
     for item in items:
-        tags = get_lastfm_album_tags(item[0], item[1], lastfm)
+        tags = get_lastfm_track_tags(item[0], item[1], lastfm)
         if tags:
-            save_lastfm_album_tags(item[2], tags, cursor)
+            save_lastfm_track_tags(item[2], tags, cursor)
         else:
             print("🚫 No match for", item[0], item[1])
         i += 1

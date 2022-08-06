@@ -8,10 +8,13 @@ LASTFM_USER = os.environ["LASTFM_USER"]
 LASTFM_PASSWORD = os.environ["LASTFM_PASSWORD"]
 
 
-def get_lastfm_network():
-    return pylast.LastFMNetwork(
+def get_lastfm_network(cache_file=".cache-lastfm_api"):
+    network = pylast.LastFMNetwork(
         api_key=LASTFM_API_KEY,
         api_secret=LASTFM_API_SECRET,
         username=LASTFM_USER,
         password_hash=pylast.md5(LASTFM_PASSWORD),
     )
+    network.enable_caching(cache_file)
+    network.enable_rate_limit()
+    return network
