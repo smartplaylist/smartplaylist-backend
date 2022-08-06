@@ -16,6 +16,7 @@ urllib3 = "==1.26.8"
 structlog = "==21.5.0"
 requests-cache = "*"
 redis = "*"
+pylast = "==5"
 
 [dev-packages]
 
