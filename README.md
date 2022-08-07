@@ -31,6 +31,13 @@ Or
 * Backup database: `pg_dump -U postgres -W -F c spotify > /pgdata/2022-03-31-backup.psql`
 * Restore: `pg_restore -U postgres -d pg_import_test /pgdata/2022-03-31-backup.psql`
 
+### Rename database
+
+1. `docker exec -ti spotify-grabtrack_db_1 bash --login`
+1. `psql -U postgres`
+1. `\connect postgres`
+1. `ALTER DATABASE old_spotify RENAME TO spotify;`
+
 ## Work with alembic (database migrations)
 
 1. Have the stack working (you need a running database) `docker-compose -f stack.yml up -d`
