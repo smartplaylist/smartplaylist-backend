@@ -57,7 +57,7 @@ def main():
     # TODO: https://dellsystem.me/posts/psycopg2-offset-performance
     # Use server-side cursors to select partial results from db
     cursor.execute(
-        "SELECT main_artist, name, spotify_id FROM albums ORDER BY created_at ASC"  # WHERE lastfm_tags IS NULL
+        "SELECT main_artist, name, spotify_id FROM albums WHERE lastfm_tags IS NULL ORDER BY created_at ASC"  # WHERE lastfm_tags IS NULL
     )
     items = cursor.fetchall()
     total = len(items)

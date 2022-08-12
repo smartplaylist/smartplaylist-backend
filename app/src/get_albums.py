@@ -29,6 +29,27 @@ def filter_album(album):
     )
 
 
+def update_total_albums(artist_id, results, cursor):
+    """Update total albums for the current artist
+    Even though we might not store all those albums
+    It is used for determining if there are new releases in Spotify's database"""
+
+    try:
+        cursor.execute(
+            "UPDATE artists SET total_albums=%s, albums_updated_at=%s WHERE spotify_id=%s;",
+            (results["total"], datetime.now(timezone.utc), artist_id),
+        )
+    except Exception as e:
+        log.exception("Unhandled exception", exception=e, exc_info=True)
+    else:
+        log.info(
+            "👨🏽‍🎤 Updated total albums",
+            spotify_id=artist_id,
+            total_albums=results["total"],
+            object="artist",
+        )
+
+
 def main():
     consume_channel = broker.create_channel(READING_QUEUE_NAME)
     publish_channel = broker.create_channel(WRITING_QUEUE_NAME)
@@ -68,6 +89,9 @@ def main():
                     "Unhandled exception", exception=e, attempt=attempts, exc_info=True
                 )
 
+        # Update `albums_updated_at` even if no new albums where added
+        update_total_albums(artist_id, results, cursor)
+
         if total_albums >= results["total"]:
             log.info("No new albums", spotify_id=artist_id, object="artist")
             ch.basic_ack(method.delivery_tag)
@@ -83,7 +107,7 @@ def main():
         )
 
         # We need to do make several requests since data is sorted by albumy type
-        # and then by release date
+        # and then by the release date
         # An option would be to do separate requestes for `albums` and `singles`
         items = results["items"]
         while results["next"]:
@@ -106,25 +130,9 @@ def main():
 
             items.extend(results["items"])
 
-        # Update total albums for the current artist
-        # Even though we might not store all those albums
-        # It is used for determining if there are new releases in Spotify's database
-        try:
-            cursor.execute(
-                "UPDATE artists SET total_albums=%s, albums_updated_at=%s WHERE spotify_id=%s;",
-                (results["total"], datetime.now(timezone.utc), artist_id),
-            )
-        except Exception as e:
-            log.exception("Unhandled exception", exception=e, exc_info=True)
-        else:
-            log.info(
-                "👨🏽‍🎤 Updated total albums",
-                spotify_id=artist_id,
-                total_albums=results["total"],
-                prev_total_albums=total_albums,
-                object="artist",
-            )
-
+        # TODO: Why not sort results by release date and only add those newest
+        # This will not add older realeases that were added by Spotify between 2021
+        # checking new releases
         for i, item in enumerate(items):
             artists = []
             for artist in item["artists"]:
