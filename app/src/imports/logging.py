@@ -16,9 +16,9 @@ def get_logger(name):
         #     structlog.processors.TimeStamper(fmt="iso", key="ts"),
         #     structlog.processors.JSONRenderer(),
         # ],
-        # wrapper_class=structlog.make_filtering_bound_logger(
-        #     getattr(logging, log_level)
-        # ),
+        wrapper_class=structlog.make_filtering_bound_logger(
+            getattr(logging, log_level)
+        ),
     )
 
     log = structlog.get_logger(name)
