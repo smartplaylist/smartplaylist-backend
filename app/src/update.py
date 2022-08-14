@@ -1,3 +1,4 @@
+from datetime import datetime, timezone, timedelta
 import json
 import os
 import sys
@@ -8,7 +9,7 @@ import imports.broker as broker
 import imports.db as db
 from imports.logging import get_logger
 
-CHANNEL_ALBUMS_NAME = "artists_test"
+CHANNEL_ALBUMS_NAME = "artists"
 
 log = get_logger(os.path.basename(__file__))
 
@@ -17,7 +18,13 @@ def main():
     channel_albums = broker.create_channel(CHANNEL_ALBUMS_NAME)
     db_connection, cursor = db.init_connection()
 
-    cursor.execute("SELECT spotify_id, name, total_albums FROM artists")
+    cursor.execute(
+        """SELECT spotify_id, name, total_albums, albums_updated_at, created_at
+        FROM artists
+        WHERE albums_updated_at < %s
+        ORDER BY created_at LIMIT 10000;""",
+        (datetime.now(timezone.utc) - timedelta(days=1),),
+    )
     artist_data = cursor.fetchall()
 
     for item in artist_data:
@@ -39,7 +46,7 @@ def main():
             ),
         )
 
-    print("Adding artists to `related_artists` Queue.")
+    print("Adding artists to `artists` Queue.")
 
     # Clean up and close connections
     broker.close_connection()
