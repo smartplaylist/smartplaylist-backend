@@ -3,10 +3,12 @@
 
 __pycache__/
 .cache
+spotify_api_cache.sqlite-journal
 .env
 *.conf
 *.sqlite
 .cache-lastfm*
+
 
 pgdata/
 rabbitmq_mnesia_dir/
