@@ -11,7 +11,8 @@ from spotipy.oauth2 import SpotifyClientCredentials
 import imports.broker as broker
 import imports.db as db
 from imports.logging import get_logger
-import imports.requests
+
+# import imports.requests
 
 SPOTIFY_MARKET = os.environ["SPOTIFY_MARKET"]
 READING_QUEUE_NAME = "artists"
@@ -81,7 +82,7 @@ def main():
                     limit=50,
                     country=SPOTIFY_MARKET,
                 )
-                log.info("Trying API request", attempt=attempts)
+                log.info("⚡️ Trying API request", attempt=attempts)
                 break
             except Exception as e:
                 attempts += 1
@@ -93,7 +94,7 @@ def main():
         update_total_albums(artist_id, results, cursor)
 
         if total_albums >= results["total"]:
-            log.info("No new albums", spotify_id=artist_id, object="artist")
+            log.info("👨🏽‍🎤 No new albums", spotify_id=artist_id, object="artist")
             ch.basic_ack(method.delivery_tag)
             return
 
