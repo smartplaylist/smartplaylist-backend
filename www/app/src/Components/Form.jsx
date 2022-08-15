@@ -143,6 +143,16 @@ function Form(props) {
                         name="explicit"
                         onChange={props.handler}
                         value={props.values.explicit}
+                        defaultChecked={props.values.explicit}
+                    />
+                    <label htmlFor="followed">Only followed artists</label>
+                    <input
+                        type="checkbox"
+                        id="followed"
+                        name="followed"
+                        onChange={props.handler}
+                        value={props.values.followed}
+                        defaultChecked={props.values.followed}
                     />
                 </div>
 

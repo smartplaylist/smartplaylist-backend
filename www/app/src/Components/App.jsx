@@ -16,7 +16,7 @@ function App() {
     const [form, setForm] = useState({
         query: "",
         genres: "",
-        releaseDate: "2020-01-01",
+        releaseDate: "2022-01-01",
 
         minTempo: 80,
         maxTempo: 210,
@@ -62,7 +62,8 @@ function App() {
         maxValence: 1000,
         showColumnValence: "true",
 
-        explicit: "checked",
+        explicit: 1,
+        followed: 0,
         key: "any",
     });
 
@@ -83,10 +84,16 @@ function App() {
 
     const fetchData = (form) => {
         const LIMIT = 100;
+        const USER_ID = `_jkulak`;
 
         let url = HOST;
         url += `/tracks`;
         url += `?select=spotify_id,all_artists,name,genres,release_date,tempo,popularity,danceability,energy,speechiness,acousticness,instrumentalness,liveness,valence,main_artist_popularity,main_artist_followers,key,preview_url`;
+
+        if (form.followed) {
+            url += `,user_followed_artist(user_id)`;
+        }
+
         url += `&order=release_date.desc,popularity.desc,spotify_id.asc`;
         url += `&limit=${LIMIT}`;
         url += `&tempo=gte.${form.minTempo}&tempo=lte.${form.maxTempo}`;

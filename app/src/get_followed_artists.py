@@ -27,6 +27,8 @@ def main():
         auth_manager=SpotifyPKCE(scope=SPOTIFY_SCOPE, open_browser=False)
     )
 
+    spotify_me = sp.me()
+
     results = sp.current_user_followed_artists(limit=50)
 
     artists = results["artists"]["items"]
@@ -51,8 +53,9 @@ def main():
                     False,
                 ),
             )
+
         except Exception as e:
-            log.exception("Unhandled exception")
+            log.exception("Unhandled exception", exception=e, exc_info=True)
         else:
             # Only add to queue if it was added to the db
             if cursor.rowcount:
@@ -62,6 +65,16 @@ def main():
                     name=item["name"],
                     status="saved",
                 )
+
+                try:
+                    # Save user followed artist relation
+                    cursor.execute(
+                        "INSERT INTO user_followed_artist (spotify_id, user_id) VALUES (%s, %s);",
+                        (item["id"], spotify_me["id"]),
+                    )
+                except Exception as e:
+                    log.exception("Unhandled exception", exception=e, exc_info=True)
+
                 channel_albums.basic_publish(
                     exchange="",
                     routing_key=CHANNEL_ALBUMS_NAME,
