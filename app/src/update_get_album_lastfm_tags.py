@@ -57,7 +57,7 @@ def main():
     # TODO: https://dellsystem.me/posts/psycopg2-offset-performance
     # Use server-side cursors to select partial results from db
     cursor.execute(
-        "SELECT main_artist, name, spotify_id FROM albums WHERE lastfm_tags IS NULL ORDER BY created_at ASC"  # WHERE lastfm_tags IS NULL
+        "SELECT main_artist, name, spotify_id FROM albums WHERE lastfm_tags IS NULL AND release_date > '2020-01-01' ORDER BY created_at ASC"
     )
     items = cursor.fetchall()
     total = len(items)
@@ -67,10 +67,14 @@ def main():
 
     for item in items:
         tags = get_lastfm_album_tags(item[0], item[1], lastfm)
-        if tags:
-            save_lastfm_album_tags(item[2], tags, cursor)
-        else:
-            print("🚫 No match for", item[0], item[1])
+        save_lastfm_album_tags(item[2], tags, cursor)
+        if not tags:
+            log.info(
+                "💿 No Last.fm tags for album",
+                spotify_id=item[2],
+                artist=item[1],
+                object="album",
+            )
         i += 1
         progress_bar(i, total)
 

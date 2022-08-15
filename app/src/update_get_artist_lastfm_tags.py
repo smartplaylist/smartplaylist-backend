@@ -62,10 +62,14 @@ def main():
 
     for artist in artists:
         tags = get_lastfm_artist_tags(artist[0], lastfm)
-        if tags:
-            save_lastfm_artist_tags(artist[1], tags, cursor)
-        else:
-            print("🚫 No match for", artist[0])
+        save_lastfm_artist_tags(artist[1], tags, cursor)
+        if not tags:
+            log.info(
+                "👨🏽‍🎤 No Last.fm tags for artist",
+                spotify_id=artist[1],
+                artist=artist[0],
+                object="artist",
+            )
 
     # Clean up and close connections
     db.close_connection(db_connection, cursor)
