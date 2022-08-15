@@ -56,7 +56,7 @@ def main():
     lastfm = get_lastfm_network(cache_file=".cache-lastfm-api-tracks")
 
     cursor.execute(
-        "SELECT main_artist, name, spotify_id FROM tracks ORDER BY created_at ASC"  # WHERE lastfm_tags IS NULL
+        "SELECT main_artist, name, spotify_id FROM tracks WHERE lastfm_tags IS NULL ORDER BY created_at ASC"
     )
     items = cursor.fetchall()
     total = len(items)
@@ -66,10 +66,14 @@ def main():
 
     for item in items:
         tags = get_lastfm_track_tags(item[0], item[1], lastfm)
-        if tags:
-            save_lastfm_track_tags(item[2], tags, cursor)
-        else:
-            print("🚫 No match for", item[0], item[1])
+        save_lastfm_track_tags(item[2], tags, cursor)
+        if not tags:
+            log.info(
+                "🔉 No Last.fm tags for track",
+                spotify_id=item[2],
+                artist=item[0] + item[1],
+                object="track",
+            )
         i += 1
         progress_bar(i, total)
 
