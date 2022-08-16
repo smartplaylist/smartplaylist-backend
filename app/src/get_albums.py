@@ -24,7 +24,7 @@ log = get_logger(os.path.basename(__file__))
 
 def filter_album(album):
     return (
-        album["release_date"] >= "2021"
+        album["release_date"] >= "2020"
         and album["album_type"] != "compilation"
         and album["artists"][0]["name"] != "Various Artists"
     )
