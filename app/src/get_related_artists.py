@@ -10,7 +10,6 @@ from spotipy.oauth2 import SpotifyClientCredentials
 import imports.broker as broker
 import imports.db as db
 from imports.logging import get_logger
-import imports.requests
 
 CHANNEL_RELATED_ARTISTS_NAME = "related_artists"
 CHANNEL_ALBUMS_NAME = "artists"

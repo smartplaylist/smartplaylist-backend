@@ -7,17 +7,18 @@ import pika
 
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
+from spotipy.oauth2 import CacheFileHandler
 
 import imports.broker as broker
 import imports.db as db
 from imports.logging import get_logger
 
-# import imports.requests
-
 SPOTIFY_MARKET = os.environ["SPOTIFY_MARKET"]
 READING_QUEUE_NAME = "artists"
 WRITING_QUEUE_NAME = "albums"
 MAX_RETRY_ATTEMPTS = 10
+
+SPOTIPY_AUTH_CACHE_PATH = ".cache-spotipy"
 
 log = get_logger(os.path.basename(__file__))
 
@@ -55,7 +56,11 @@ def main():
     consume_channel = broker.create_channel(READING_QUEUE_NAME)
     publish_channel = broker.create_channel(WRITING_QUEUE_NAME)
     db_connection, cursor = db.init_connection()
-    sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials())
+    sp = spotipy.Spotify(
+        auth_manager=SpotifyClientCredentials(
+            cache_handler=CacheFileHandler(cache_path=SPOTIPY_AUTH_CACHE_PATH)
+        )
+    )
 
     def callback(ch, method, properties, body):
         """Handle received artist's data from the queue"""
@@ -216,6 +221,7 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
+        ## If file exists, delete it ##
         print("Interrupted")
         try:
             sys.exit(0)

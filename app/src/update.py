@@ -10,6 +10,7 @@ import imports.db as db
 from imports.logging import get_logger
 
 CHANNEL_ALBUMS_NAME = "artists"
+UPDATE_TIMEDELTA_HOURS = os.getenv("UPDATE_TIMEDELTA_HOURS", 24)
 
 log = get_logger(os.path.basename(__file__))
 
@@ -22,8 +23,8 @@ def main():
         """SELECT spotify_id, name, total_albums, albums_updated_at, created_at
         FROM artists
         WHERE albums_updated_at < %s
-        ORDER BY created_at LIMIT 10000;""",
-        (datetime.now(timezone.utc) - timedelta(days=1),),
+        ORDER BY created_at;""",
+        (datetime.now(timezone.utc) - timedelta(hours=UPDATE_TIMEDELTA_HOURS),),
     )
     artist_data = cursor.fetchall()
 
