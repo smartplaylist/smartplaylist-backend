@@ -19,5 +19,5 @@ jobs:
                 uses: docker/build-push-action@v3
                 with:
                     context: "{{defaultContext}}:app"
-                    push: true
                     tags: [grabtrack/app:latest, grabtrack/app:${GITHUB_SHA::8}]
+                    push: true
