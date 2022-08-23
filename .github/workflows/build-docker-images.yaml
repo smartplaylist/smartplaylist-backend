@@ -13,11 +13,14 @@ jobs:
               with:
                   username: ${{ secrets.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
+            - name: debug
+              run: pwd
+            - name: debug2
+              run: ls -la
             - name: Build and push
               uses: docker/build-push-action@v3
               with:
-                  context: "{{defaultContext}}:app"
+                  context: .
+                  file: ./app/Dockerfile
                   push: true
-                  tags:
-                      - grabtrack/app:latest
-                      - grabtrack/app:${GITHUB_SHA::8}]
+                  tags: grabtrack/app:latest
