@@ -22,4 +22,4 @@ jobs:
               with:
                   context: ./app
                   push: true
-                  tags: grabtrack/app:latest
+                  tags: jkulak/grabtrack-app:latest
