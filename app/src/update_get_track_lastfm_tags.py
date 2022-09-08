@@ -5,6 +5,7 @@ Can be run for all tracks or tracks with NULL in `lastfm_tags`
 import os
 import sys
 from datetime import datetime, timezone
+from app.src.update_get_album_lastfm_tags import LASTFM_API_CACHE_FILENAME
 
 import pylast
 
@@ -13,6 +14,8 @@ from imports.logging import get_logger
 from imports.lastfm import get_lastfm_network
 from imports.tools import progress_bar
 import imports.requests
+
+LASTFM_API_CACHE_FILENAME = ".cache-lastfm-api-tracks"
 
 log = get_logger(os.path.basename(__file__))
 
@@ -53,7 +56,7 @@ def save_lastfm_track_tags(spotify_id, tags, cursor):
 
 def main():
     db_connection, cursor = db.init_connection()
-    lastfm = get_lastfm_network(cache_file=".cache-lastfm-api-tracks")
+    lastfm = get_lastfm_network(cache_file=LASTFM_API_CACHE_FILENAME)
 
     cursor.execute(
         "SELECT main_artist, name, spotify_id FROM tracks WHERE lastfm_tags IS NULL ORDER BY created_at ASC"

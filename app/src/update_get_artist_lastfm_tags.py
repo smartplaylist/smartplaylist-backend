@@ -13,6 +13,8 @@ from imports.logging import get_logger
 from imports.lastfm import get_lastfm_network
 import imports.requests
 
+LASTFM_API_CACHE_FILENAME = ".cache-lastfm-api-artists"
+
 log = get_logger(os.path.basename(__file__))
 
 
@@ -54,7 +56,7 @@ def save_lastfm_artist_tags(artist_id, tags, cursor):
 
 def main():
     db_connection, cursor = db.init_connection()
-    lastfm = get_lastfm_network(cache_file=".cache-lastfm-api-artists")
+    lastfm = get_lastfm_network(cache_file=LASTFM_API_CACHE_FILENAME)
     cursor.execute(
         "SELECT name, spotify_id FROM artists WHERE lastfm_tags IS NULL ORDER BY created_at ASC"
     )
