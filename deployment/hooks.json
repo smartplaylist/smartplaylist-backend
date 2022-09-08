@@ -1,0 +1,14 @@
+[
+    {
+        "id": "deploy-www",
+        "execute-command": "/home/www/deployment/deploy-www.sh",
+        "command-working-directory": "/home/www/deployment",
+        "response-message": "Redeploying the www container"
+    },
+    {
+        "id": "deploy-app",
+        "execute-command": "/home/www/deployment/deploy-app.sh",
+        "command-working-directory": "/home/www/deployment",
+        "response-message": "Redeploying the app containers."
+    }
+]

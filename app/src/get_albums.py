@@ -98,6 +98,7 @@ def main():
         # Update `albums_updated_at` even if no new albums where added
         update_total_albums(artist_id, results, cursor)
 
+        # To grab more (older) albums, we should get rid of that condition
         if total_albums >= results["total"]:
             log.info("👨🏽‍🎤 No new albums", spotify_id=artist_id, object="artist")
             ch.basic_ack(method.delivery_tag)

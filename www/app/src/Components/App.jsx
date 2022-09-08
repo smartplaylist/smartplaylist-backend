@@ -5,7 +5,7 @@ import Player from "./Player";
 import Stats from "./Stats";
 import TrackList from "./TrackList";
 
-const HOST = `http://127.0.0.1:3000`;
+const HOST = `http://188.68.231.182:3000`;
 const FETCH_DELAY = 500;
 
 function App() {
@@ -193,7 +193,7 @@ function App() {
     return (
         <div className="App">
             <header className="App-header">
-                <h1>Spotify smart playlist generator</h1>
+                <h1>Spotify Smart Playlists 🤴🏾</h1>
             </header>
             <div id="main">
                 <Stats totalResults={totalResults} totalTracks={totalTracks} />

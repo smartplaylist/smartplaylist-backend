@@ -10,7 +10,7 @@ import imports.db as db
 from imports.logging import get_logger
 
 CHANNEL_ALBUMS_NAME = "artists"
-UPDATE_TIMEDELTA_HOURS = os.getenv("UPDATE_TIMEDELTA_HOURS", 24)
+UPDATE_TIMEDELTA_HOURS = int(os.getenv("UPDATE_TIMEDELTA_HOURS", 2))
 
 log = get_logger(os.path.basename(__file__))
 
