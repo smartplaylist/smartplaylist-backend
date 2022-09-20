@@ -20,4 +20,4 @@ jobs:
                   push: true
                   tags:
                       - grabtrack/app:latest
-                      - grabtrack/app:${GITHUB_SHA::8}]
+                      - grabtrack/app:${GITHUB_SHA::8}

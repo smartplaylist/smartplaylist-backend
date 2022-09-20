@@ -8,7 +8,7 @@ logging.basicConfig(level=log_level)
 logging.getLogger("spotipy").setLevel(log_level)
 logging.getLogger("urllib3").setLevel(log_level)
 logging.getLogger("requests").setLevel(log_level)
-logging.getLogger("pika").setLevel(log_level)
+logging.getLogger("pika").setLevel("WARNING")
 
 
 def get_logger(name):
