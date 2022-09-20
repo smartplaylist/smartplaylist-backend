@@ -5,7 +5,8 @@ import Player from "./Player";
 import Stats from "./Stats";
 import TrackList from "./TrackList";
 
-const HOST = `http://127.0.0.1:3000`;
+const HOST = process.env.PGRST_OPENAPI_SERVER_PROXY_URI;
+// const HOST = `http://127.0.0.1:3000`;
 const FETCH_DELAY = 500;
 
 function App() {
