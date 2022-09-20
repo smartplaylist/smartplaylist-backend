@@ -14,6 +14,8 @@ from imports.lastfm import get_lastfm_network
 from imports.tools import progress_bar
 import imports.requests
 
+LASTFM_API_CACHE_FILENAME = ".cache-lastfm-api-albums"
+
 log = get_logger(os.path.basename(__file__))
 
 
@@ -53,7 +55,7 @@ def save_lastfm_album_tags(spotify_id, tags, cursor):
 
 def main():
     db_connection, cursor = db.init_connection()
-    lastfm = get_lastfm_network(cache_file=".cache-lastfm-api-albums")
+    lastfm = get_lastfm_network(cache_file=LASTFM_API_CACHE_FILENAME)
     # TODO: https://dellsystem.me/posts/psycopg2-offset-performance
     # Use server-side cursors to select partial results from db
     cursor.execute(

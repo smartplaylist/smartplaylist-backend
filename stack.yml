@@ -85,7 +85,7 @@ services:
                 fluentd-async: "true"
 
     api:
-        image: postgrest/postgrest
+        image: postgrest/postgrest:v10.0.0
         restart: always
         ports:
             - 3000:3000
