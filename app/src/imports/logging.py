@@ -5,7 +5,7 @@ import structlog
 
 log_level = os.environ.get("GRABBER_LOGLEVEL", "WARNING")
 logging.basicConfig(level=log_level)
-logging.getLogger("spotipy").setLevel(log_level)
+logging.getLogger("spotipy").setLevel("WARNING")
 logging.getLogger("urllib3").setLevel(log_level)
 logging.getLogger("requests").setLevel(log_level)
 logging.getLogger("pika").setLevel("WARNING")

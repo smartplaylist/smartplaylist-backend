@@ -5,7 +5,7 @@ on:
         branches: ["release-*", "prepare-for-deployment"]
 
 jobs:
-    build-and-push-listener:
+    build-and-push-app:
         name: Build and push "app" image
         runs-on: ubuntu-latest
         steps:
@@ -67,7 +67,7 @@ jobs:
                   context: ./www
                   push: true
                   tags: ${{ steps.meta.outputs.tags }}
-    redeploy:
+    deploy-www:
         name: Redeploy "www"
         runs-on: ubuntu-latest
         needs: [build-and-push-www]
@@ -75,4 +75,13 @@ jobs:
             - name: Deploy docker container webhook
               uses: joelwmale/webhook-action@master
               with:
-                  url: ${{ secrets.DEPLOY_WEBHOOK_URL }}/redeploy-www
+                  url: ${{ secrets.DEPLOY_WEBHOOK_URL }}/deploy-www
+    deploy-listeners:
+        name: Redeploy "app"
+        runs-on: ubuntu-latest
+        needs: [build-and-push-app]
+        steps:
+            - name: Deploy docker container webhook
+              uses: joelwmale/webhook-action@master
+              with:
+                  url: ${{ secrets.DEPLOY_WEBHOOK_URL }}/deploy-app
