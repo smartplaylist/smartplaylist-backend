@@ -6,7 +6,7 @@ on:
 
 jobs:
     build-and-push-listener:
-        name: Build nad push "app" image
+        name: Build and push "app" image
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
@@ -37,7 +37,7 @@ jobs:
                   push: true
                   tags: ${{ steps.meta.outputs.tags }}
     build-and-push-www:
-        name: Build nad push "www" image
+        name: Build and push "www" image
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
