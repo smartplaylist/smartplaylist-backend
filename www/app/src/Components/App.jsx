@@ -5,7 +5,7 @@ import Player from "./Player";
 import Stats from "./Stats";
 import TrackList from "./TrackList";
 
-const HOST = `http://34.172.222.124:3000`;
+const HOST = `http://188.68.231.182:3000`;
 const FETCH_DELAY = 500;
 
 function App() {
