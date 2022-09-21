@@ -16,7 +16,7 @@ jobs:
               id: meta
               uses: docker/metadata-action@v4
               with:
-                  images: jkulak/grabtrack-listener
+                  images: jkulak/grabtrack-app
                   tags: |
                       type=schedule
                       type=ref,event=branch
