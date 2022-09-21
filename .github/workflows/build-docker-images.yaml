@@ -75,4 +75,4 @@ jobs:
             - name: Deploy docker container webhook
               uses: joelwmale/webhook-action@master
               with:
-                  url: ${{ secrets.DEPLOY_WEBHOOK_URL }}
+                  url: ${{ secrets.DEPLOY_WEBHOOK_URL }}/redeploy-www

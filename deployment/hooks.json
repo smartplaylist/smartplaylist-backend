@@ -1,6 +1,6 @@
 [
     {
-        "id": "redeploy",
+        "id": "redeploy-www",
         "execute-command": "/home/www/deployment/deploy-www.sh",
         "command-working-directory": "/home/www/deployment",
         "response-message": "Redeploying the www application."
