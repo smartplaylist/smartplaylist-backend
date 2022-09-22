@@ -1,4 +1,4 @@
-.cache
+.cache-spotipy
 **/*.sqlite
 spotify_api_cache.sqlite-journal
 .cache-lastfm*
