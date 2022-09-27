@@ -1,7 +1,15 @@
+import os
 import pika
 
-"""broker" is a RabbitMQ service name from stack.yml file"""
-connection = pika.BlockingConnection(pika.ConnectionParameters("broker"))
+host = os.environ["RABBITMQ_HOSTNAME"]
+username = os.environ["RABBITMQ_DEFAULT_USER"]
+password = os.environ["RABBITMQ_DEFAULT_PASS"]
+
+connection = pika.BlockingConnection(
+    pika.ConnectionParameters(
+        host=host, credentials=pika.PlainCredentials(username, password)
+    )
+)
 
 
 def create_channel(name):
