@@ -20,10 +20,8 @@ jobs:
               with:
                   images: jkulak/grabtrack-app
                   tags: |
-                      type=schedule
                       type=ref,event=branch
-                      type=ref,event=pr
-                      type=sha
+                      type=ref,event=tag
                       type=raw,value=latest
 
             - name: Login to DockerHub
@@ -51,10 +49,8 @@ jobs:
               with:
                   images: jkulak/grabtrack-www
                   tags: |
-                      type=schedule
                       type=ref,event=branch
-                      type=ref,event=pr
-                      type=sha
+                      type=ref,event=tag
                       type=raw,value=latest
 
             - name: Login to DockerHub
