@@ -3,12 +3,32 @@
         "id": "deploy-www",
         "execute-command": "/home/www/deployment/deploy-www.sh",
         "command-working-directory": "/home/www/deployment",
-        "response-message": "Redeploying the www container"
+        "response-message": "Redeploying the www container",
+        "trigger-rule": {
+            "match": {
+                "type": "value",
+                "secret": "REPLACE_WITH_YOUR_SECRET",
+                "parameter": {
+                    "source": "header",
+                    "name": "secret"
+                }
+            }
+        }
     },
     {
         "id": "deploy-app",
         "execute-command": "/home/www/deployment/deploy-app.sh",
         "command-working-directory": "/home/www/deployment",
-        "response-message": "Redeploying the app containers."
+        "response-message": "Redeploying the app containers.",
+        "trigger-rule": {
+            "match": {
+                "type": "value",
+                "secret": "REPLACE_WITH_YOUR_SECRET",
+                "parameter": {
+                    "source": "header",
+                    "name": "secret"
+                }
+            }
+        }
     }
 ]

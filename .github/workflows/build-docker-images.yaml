@@ -74,6 +74,7 @@ jobs:
               uses: joelwmale/webhook-action@master
               with:
                   url: ${{ secrets.DEPLOY_WEBHOOK_URL }}/deploy-www
+                  headers: '{"secret": "${{ secrets.WEBHOOK_SECRET }}"}'
     deploy-listeners:
         name: Redeploy "app"
         runs-on: ubuntu-latest
@@ -83,3 +84,4 @@ jobs:
               uses: joelwmale/webhook-action@master
               with:
                   url: ${{ secrets.DEPLOY_WEBHOOK_URL }}/deploy-app
+                  headers: '{"secret": "${{ secrets.WEBHOOK_SECRET }}"}'

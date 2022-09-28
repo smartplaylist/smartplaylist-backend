@@ -1,4 +1,4 @@
-# Installation
+# Production deployment
 
 ## Prepare production server
 
@@ -30,22 +30,47 @@
 * `docker build -t app ./app`
 * `docker run -ti --rm --network my-bridge-network -p 8083:8083 -v $(pwd)/app/src:/app --env-file .env app pipenv run python sync_followed_artists.py`
 
-#### Run www
+### Run www
 
 * `docker run -d --rm --network my-bridge-network --env-file .env --hostname gt_www -p 3001:3001 --name www jkulak/grabtrack-www:latest`
 
-#### Run listeners
+### Run listeners
 
 * `docker run -d --rm --network my-bridge-network --env-file .env app pipenv run python get_albums.py`
-
-* `sudo apt-get install webhook`
-* `cat webhook.service > /lib/systemd/system/webhook.service`
-* `systemctl start webhook`
-* `systemctl status webhook`
-* `journalctl -f -u webhook.service` - follow service logs
-* `crontab -e`
 
 ## Monitoring
 
 * `docker logs -f --tail 10 albums_listener_1` - view container logs
 * `sudo grep CRON /var/log/syslog` - view cron logs
+
+## Cron
+
+* `crontab -e`
+* `crontab -l`
+
+```cron
+25 12 * * * /home/www/deployment/run_spotify_update.sh >> /home/www/cron_results
+10 23 * * * /home/www/db_backup/db_backup.sh >> /home/www/db_backup/cron_db_backup_results
+```
+
+## Webhooks
+
+### Installation
+
+We need `webhook` at least 2.8.0 version which is not available through `apt-get`.
+I had problems installing it with `snap`.
+Solution: install older version using `apt-get` and overwrite the binary file (built from GitHub).
+
+* `sudo apt-get install webhook`
+* Install Go (<https://go.dev/doc/install>)
+* Clone `https://github.com/adnanh/webhook` repository
+* `go build github.com/adnanh/webhook`
+* `sudo ln -s /home/www/webhook/webhook /usr/bin/webhook`
+* Test `which webhook` and `webhook --version`
+* Edit `/lib/systemd/system/webhook.service` (change `ExecStart=/usr/bin/webhook -nopanic -verbose -hotreload -hooks /home/www/deployment/hooks.json`)
+
+### Service management and monitoring
+
+* `systemctl start webhook`
+* `systemctl status webhook`
+* `journalctl -f -u webhook.service` - follow service logs
