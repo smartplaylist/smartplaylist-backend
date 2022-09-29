@@ -1,11 +1,11 @@
-FROM node:17-alpine3.14
-
+FROM node:17-alpine3.14 AS builder
 WORKDIR /app
-
-ADD ./app ./
-
+COPY ./app ./
 RUN yarn && \
-    yarn build && \
-    yarn global add serve
+    yarn build
 
-CMD [ "serve", "-s", "build" ]
+FROM joseluisq/static-web-server:2.12
+WORKDIR /app
+COPY --from=builder /app/build ./
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["static-web-server"]

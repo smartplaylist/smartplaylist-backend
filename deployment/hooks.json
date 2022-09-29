@@ -1,7 +1,7 @@
 [
     {
         "id": "deploy-www",
-        "execute-command": "/home/www/deployment/deploy-www.sh",
+        "execute-command": "/home/www/deployment/deploy_www.sh",
         "command-working-directory": "/home/www/deployment",
         "response-message": "Redeploying the www container",
         "trigger-rule": {
@@ -17,7 +17,7 @@
     },
     {
         "id": "deploy-app",
-        "execute-command": "/home/www/deployment/deploy-app.sh",
+        "execute-command": "/home/www/deployment/deploy_app.sh",
         "command-working-directory": "/home/www/deployment",
         "response-message": "Redeploying the app containers.",
         "trigger-rule": {
