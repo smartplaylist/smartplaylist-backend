@@ -7,5 +7,3 @@ RUN yarn && \
 FROM joseluisq/static-web-server:2.12
 WORKDIR /app
 COPY --from=builder /app/build ./
-ENTRYPOINT ["/entrypoint.sh"]
-CMD ["static-web-server"]
