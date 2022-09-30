@@ -32,7 +32,7 @@
 
 ### Run www
 
-* `docker run -d --rm --network my-bridge-network --env-file .env --hostname gt_www -p 3001:3001 --name www jkulak/grabtrack-www:latest`
+* <https://github.com/jkulak/smartplaylist-www/tree/main/deployment>
 
 ### Run listeners
 
