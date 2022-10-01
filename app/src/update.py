@@ -23,7 +23,7 @@ def main():
         """SELECT spotify_id, name, total_albums, albums_updated_at, created_at
         FROM artists
         WHERE albums_updated_at < %s
-        ORDER BY albums_updated_at DESC
+        ORDER BY albums_updated_at
         LIMIT 50000;""",
         (datetime.now(timezone.utc) - timedelta(hours=UPDATE_TIMEDELTA_HOURS),),
     )
