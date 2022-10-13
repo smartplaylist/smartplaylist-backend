@@ -1,5 +1,9 @@
 FROM python:3.10.2-alpine3.15
 
+RUN apk update && apk upgrade
+RUN apk add --no-cache gcc libc-dev bash htop ncdu \
+    && rm -rf /var/cache/apk/*
+
 WORKDIR /app
 
 ENV POSTGRES_USER=${POSTGRES_USER:-postgres}
