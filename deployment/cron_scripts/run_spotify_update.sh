@@ -3,7 +3,7 @@
 NOW=$(date '+%Y-%m-%d-%H%M%S')
 echo $NOW "Running update script"
 
-docker run --rm --network my-bridge-network --env-file /home/www/spotify-grabtrack/.env app:current pipenv run python update.py
+docker run --rm --network smartplaylist_network --env-file /home/www/spotify-grabtrack/.env app:current pipenv run python update.py
 
 docker start albums_listener_1
 docker start albums_listener_2

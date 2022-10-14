@@ -7,5 +7,5 @@ docker pull $IMAGE_NAME
 docker tag $IMAGE_NAME api:current
 docker stop api
 docker rm api
-docker run -d --network my-bridge-network --name api api:current
+docker run -d --network smartplaylist_network --name api api:current
 docker rmi $IMAGE_NAME
