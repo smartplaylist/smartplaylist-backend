@@ -1,6 +1,6 @@
-.cache-spotipy
+**/.cache-spotipy
 **/*.sqlite
 spotify_api_cache.sqlite-journal
-.cache-lastfm*
-dev-tools
+**/.cache-lastfm*
+**/.DS_Store
 # TODO: Do Pipefile and Pipfile.lock go here?

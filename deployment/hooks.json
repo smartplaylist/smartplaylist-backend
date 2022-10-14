@@ -30,5 +30,21 @@
                 }
             }
         }
+    },
+    {
+        "id": "deploy-api",
+        "execute-command": "/home/www/deployment/deploy_api.sh",
+        "command-working-directory": "/home/www/deployment",
+        "response-message": "Redeploying the api container.",
+        "trigger-rule": {
+            "match": {
+                "type": "value",
+                "secret": "REPLACE_WITH_YOUR_SECRET",
+                "parameter": {
+                    "source": "header",
+                    "name": "secret"
+                }
+            }
+        }
     }
 ]

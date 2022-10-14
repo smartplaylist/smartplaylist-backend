@@ -1,9 +1,0 @@
-port              6379
-# daemonize         yes
-save              300 10
-bind              0.0.0.0
-# tcp-keepalive     300
-dbfilename        grabtracker_redis_dump.rdb
-dir               /data
-rdbcompression    yes
-loglevel          warning
