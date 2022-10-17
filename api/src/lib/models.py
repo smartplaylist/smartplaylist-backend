@@ -21,23 +21,11 @@ db_sessionmaker = get_sessionmaker()
 Base = declarative_base()
 
 
-class CRUD:
-    def save(self):
-        if self.spotify_id == None:
-            with db_sessionmaker() as session:
-                session.add(self)
-                return session.commit()
-
-    def destroy(self):
-        with db_sessionmaker() as session:
-            session.delete(self)
-            return session.commit()
-
-
-class Track(Base, CRUD):
+class Track(Base):
     __tablename__ = "tracks"
     spotify_id = Column(Text, primary_key=True)
     name = Column(Text)
+    name_fts_string = Column(Text)
     all_artists_string = Column(Text)
     genres_string = Column(Text)
     tempo = Column(SmallInteger)
@@ -71,7 +59,6 @@ class Track(Base, CRUD):
     def search(
         self,
         name="",
-        all_artists_string="",
         genres_string="",
         tempo_min=80,
         tempo_max=210,
@@ -95,17 +82,17 @@ class Track(Base, CRUD):
         liveness_max=1000,
         valence_min=0,
         valence_max=1000,
-        release_date="2021-12-01",
+        release_date="2020-12-01",
         key=1,
     ):
         with db_sessionmaker() as session:
             x = (
                 session.query(Track)
                 .filter(
-                    Track.name.ilike(f"%{name}%")
-                    | Track.all_artists_string.ilike(f"%{name}%")
+                    Track.name_fts_string.like(f"%{name.lower()}%")
+                    | Track.all_artists_string.like(f"%{name.lower()}%")
                 )
-                .filter(Track.genres_string.ilike(f"%{genres_string}%"))
+                .filter(Track.genres_string.like(f"%{genres_string.lower()}%"))
                 .filter(Track.tempo >= tempo_min)
                 .filter(Track.tempo <= tempo_max)
                 .filter(Track.popularity >= popularity_min)

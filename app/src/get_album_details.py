@@ -120,18 +120,19 @@ def main():
 
             try:
                 cursor.execute(
-                    "INSERT INTO tracks (spotify_id, name, main_artist, main_artist_popularity, main_artist_followers, all_artists, all_artists_string, release_date, genres, genres_string, track_number, disc_number, duration_ms, explicit, preview_url, from_album, from_album_spotify_id, album_artist, album_artist_spotify_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING;",
+                    "INSERT INTO tracks (spotify_id, name, name_fts_string, main_artist, main_artist_popularity, main_artist_followers, all_artists, all_artists_string, release_date, genres, genres_string, track_number, disc_number, duration_ms, explicit, preview_url, from_album, from_album_spotify_id, album_artist, album_artist_spotify_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING;",
                     (
                         item["id"],
                         item["name"],
+                        item["name"].lower(),
                         artists[0],
                         main_artist_popularity,
                         main_artist_followers,
                         artists,
-                        " ".join(artists),
+                        " ".join(artists).lower(),
                         album_release_date,
                         genres,
-                        " ".join(genres),
+                        " ".join(genres).lower(),
                         item["track_number"],
                         item["disc_number"],
                         item["duration_ms"],

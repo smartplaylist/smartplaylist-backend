@@ -20,7 +20,7 @@ def read_init():
 
 @app.get("/search")
 def search():
-    return Track().search(name="Soul", genres_string="", key=1)
+    return Track().search(name="Good", genres_string="rap", key=1)
 
 
 @app.get("/items/{item_id}")
