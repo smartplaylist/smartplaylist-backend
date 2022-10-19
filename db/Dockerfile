@@ -1,10 +1,5 @@
-FROM python:3.10.2-bullseye
+FROM python:3.10.7-alpine3.16
 
 WORKDIR /db
 
-ENV POSTGRES_USER=postgres
-ENV POSTGRES_PASSWORD=example
-ENV POSTGRES_DB=spotify
-ENV POSTGRES_HOST=db
-
-RUN pip install alembic psycopg2
+RUN pip install alembic psycopg2-binary
