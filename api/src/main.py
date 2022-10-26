@@ -15,8 +15,8 @@ def read_init():
     return {
         "total_tracks": track.count(),
         "tracks_with_audiofeature": track.count_with_audiofeatures(),
-        "track_newest_update": track.newest_update(),
         "track_oldest_update": track.oldest_update(),
+        "track_newest_update": track.newest_update(),
     }
 
 
