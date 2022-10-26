@@ -1,7 +1,7 @@
 from typing import Union
 
-from lib.server import app
 from lib.models import Track
+from lib.server import app
 
 
 @app.get("/")
@@ -15,6 +15,8 @@ def read_init():
     return {
         "total_tracks": track.count(),
         "tracks_with_audiofeature": track.count_with_audiofeatures(),
+        "track_newest_update": track.newest_update(),
+        "track_oldest_update": track.oldest_update(),
     }
 
 

@@ -1,23 +1,20 @@
 import os
-from sqlalchemy import Column, Integer, Text, SmallInteger, Date, create_engine, func
-from sqlalchemy.orm import declarative_base, sessionmaker
 
-
-def get_sessionmaker():
-
-    # Update connection string information
-    host = os.environ["POSTGRES_HOST"]
-    dbname = os.environ["POSTGRES_DB"]
-    user = os.environ["POSTGRES_USER"]
-    password = os.environ["POSTGRES_PASSWORD"]
-
-    # Construct connection string
-    conn_string = "postgresql://{0}:{1}@{2}/{3}".format(user, password, host, dbname)
-    return sessionmaker(bind=create_engine(conn_string))
-
+from lib.engine import get_sessionmaker
+from sqlalchemy import (
+    TIMESTAMP,
+    Column,
+    Date,
+    Integer,
+    SmallInteger,
+    Text,
+    create_engine,
+    func,
+    select,
+)
+from sqlalchemy.orm import declarative_base
 
 db_sessionmaker = get_sessionmaker()
-
 Base = declarative_base()
 
 
@@ -26,26 +23,43 @@ class Track(Base):
     spotify_id = Column(Text, primary_key=True)
     name = Column(Text)
     name_fts_string = Column(Text)
+
     all_artists_string = Column(Text)
     genres_string = Column(Text)
     tempo = Column(SmallInteger)
     popularity = Column(SmallInteger)
+
     main_artist_popularity = Column(SmallInteger)
     main_artist_followers = Column(Integer)
     danceability = Column(SmallInteger)
     energy = Column(SmallInteger)
     speechiness = Column(SmallInteger)
+
     acousticness = Column(SmallInteger)
     instrumentalness = Column(SmallInteger)
+
     liveness = Column(SmallInteger)
     valence = Column(SmallInteger)
     release_date = Column(Date)
     key = Column(SmallInteger)
     preview_url = Column(Text)
+    updated_at = Column(TIMESTAMP)
 
     def count(self):
         with db_sessionmaker() as session:
             return session.query(Track).count()
+
+    def newest_update(self):
+        with db_sessionmaker() as session:
+            stmt = select(func.max(Track.updated_at))
+            result = session.execute(stmt).scalar()
+            return result
+
+    def oldest_update(self):
+        with db_sessionmaker() as session:
+            stmt = select(func.min(Track.updated_at))
+            result = session.execute(stmt).scalar()
+            return result
 
     def count_with_audiofeatures(self):
         with db_sessionmaker() as session:
@@ -97,10 +111,18 @@ class Track(Base):
                 .filter(Track.tempo <= tempo_max)
                 .filter(Track.popularity >= popularity_min)
                 .filter(Track.popularity <= popularity_max)
-                .filter(Track.main_artist_popularity >= main_artist_popularity_min)
-                .filter(Track.main_artist_popularity <= main_artist_popularity_max)
-                .filter(Track.main_artist_followers >= main_artist_followers_min)
-                .filter(Track.main_artist_followers <= main_artist_followers_max)
+                .filter(
+                    Track.main_artist_popularity >= main_artist_popularity_min
+                )
+                .filter(
+                    Track.main_artist_popularity <= main_artist_popularity_max
+                )
+                .filter(
+                    Track.main_artist_followers >= main_artist_followers_min
+                )
+                .filter(
+                    Track.main_artist_followers <= main_artist_followers_max
+                )
                 .filter(Track.danceability >= danceability_min)
                 .filter(Track.danceability <= danceability_max)
                 .filter(Track.energy >= energy_min)
@@ -126,3 +148,7 @@ class Track(Base):
             # print(x.statement.compile(compile_kwargs={"literal_binds": True}))
             # os._exit(1)
             return x
+
+
+track = Track()
+print(track.newest_update())

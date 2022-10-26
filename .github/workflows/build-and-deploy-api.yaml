@@ -1,0 +1,47 @@
+name: Build and deploy API
+
+on:
+    push:
+        tags:
+            - "api-v[0-9]+.[0-9]+.[0-9]+"
+
+jobs:
+    build-and-push:
+        name: Build and push "api" image
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v3
+
+            - name: Docker meta
+              id: meta
+              uses: docker/metadata-action@v4
+              with:
+                  images: jkulak/smartplaylist-api
+                  tags: |
+                      type=ref,event=branch
+                      type=ref,event=tag
+                      type=raw,value=latest
+
+            - name: Login to DockerHub
+              uses: docker/login-action@v2
+              with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+            - name: Build and push API
+              uses: docker/build-push-action@v3
+              with:
+                  context: ./api
+                  push: true
+                  tags: ${{ steps.meta.outputs.tags }}
+    deploy-api:
+        name: Redeploy API
+        runs-on: ubuntu-latest
+        needs: [build-and-push]
+        steps:
+            - name: Deploy docker container webhook
+              uses: joelwmale/webhook-action@master
+              with:
+                  url: ${{ secrets.DEPLOY_WEBHOOK_URL }}/deploy-api
+                  headers: '{"secret": "${{ secrets.WEBHOOK_SECRET }}"}'
