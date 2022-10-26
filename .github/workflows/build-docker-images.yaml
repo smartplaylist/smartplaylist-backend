@@ -44,5 +44,6 @@ jobs:
             - name: Deploy docker container webhook
               uses: joelwmale/webhook-action@master
               with:
+                  node-version: "16"
                   url: ${{ secrets.DEPLOY_WEBHOOK_URL }}/deploy-app
                   headers: '{"secret": "${{ secrets.WEBHOOK_SECRET }}"}'
