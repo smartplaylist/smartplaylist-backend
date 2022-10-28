@@ -41,8 +41,8 @@ SPOTIPY_CLIENT_SECRET_17=xxx
 # this needs either source code or an image with the source code
 # docker run -ti -v $(pwd)/db:/db --rm --network smartplaylist_network alembic-image alembic upgrade head`
 
-docker pull jkulak/grabtrack-app:latest
-docker tag jkulak/grabtrack-app:latest app:current
+docker pull jkulak/smartplaylist-app:latest
+docker tag jkulak/smartplaylist-app:latest app:current
 
 # Run listeners
 
@@ -98,4 +98,4 @@ docker rm tracks_listener_2
 docker run -d --network smartplaylist_network --env-file /home/www/spotify-grabtrack/.env --env SPOTIPY_CLIENT_ID=$SPOTIPY_CLIENT_ID_14 --env SPOTIPY_CLIENT_SECRET=$SPOTIPY_CLIENT_SECRET_14 --name tracks_listener_2 app:current pipenv run python get_track_details.py
 
 
-docker rmi jkulak/grabtrack-app:latest
+docker rmi jkulak/smartplaylist-app:latest
