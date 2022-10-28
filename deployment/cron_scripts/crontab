@@ -1,3 +1,4 @@
 25 05 * * * /home/www/deployment/run_spotify_update.sh >> /home/www/cron_results
 17 03 * * * /home/www/backup_scripts/backup_db.sh >> /home/www/backup_scripts/backup_db_results
 47 03 * * * /home/www/backup_scripts/delete_old_backups.sh >> /home/www/backup_scripts/delete_old_backups_results
+47 05 * * * /home/www/backup_scripts/update_db_stats.sh >> /home/www/backup_scripts/update_db_stats_results

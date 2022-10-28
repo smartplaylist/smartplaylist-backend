@@ -8,9 +8,8 @@ from sqlalchemy import (
     Integer,
     SmallInteger,
     Text,
-    create_engine,
     func,
-    select,
+    text,
 )
 from sqlalchemy.orm import declarative_base
 
@@ -49,16 +48,20 @@ class Track(Base):
         with db_sessionmaker() as session:
             return session.query(Track).count()
 
-    def newest_update(self):
+    def get_updated_at_minmax(self):
         with db_sessionmaker() as session:
-            stmt = select(func.max(Track.updated_at))
-            result = session.execute(stmt).scalar()
+            statement = text(
+                "SELECT min(updated_at) as min, max(updated_at) as max FROM tracks"
+            )
+            result = session.execute(statement).fetchone()
             return result
 
-    def oldest_update(self):
+    def get_created_at_minmax(self):
         with db_sessionmaker() as session:
-            stmt = select(func.min(Track.updated_at))
-            result = session.execute(stmt).scalar()
+            statement = text(
+                "SELECT min(created_at) as min, max(created_at) as max FROM tracks"
+            )
+            result = session.execute(statement).fetchone()
             return result
 
     def count_with_audiofeatures(self):
@@ -100,7 +103,7 @@ class Track(Base):
         key=1,
     ):
         with db_sessionmaker() as session:
-            x = (
+            result = (
                 session.query(Track)
                 .filter(
                     Track.name_fts_string.like(f"%{name.lower()}%")
@@ -145,10 +148,6 @@ class Track(Base):
                 .limit(100)
                 .all()
             )
-            # print(x.statement.compile(compile_kwargs={"literal_binds": True}))
+            # print(x.result.compile(compile_kwargs={"literal_binds": True}))
             # os._exit(1)
-            return x
-
-
-track = Track()
-print(track.newest_update())
+            return result
