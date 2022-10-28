@@ -41,10 +41,11 @@ jobs:
         needs: [build-and-push]
         steps:
             - name: Deploy docker container webhook
-            - uses: actions/setup-node@v3
+              uses: actions/setup-node@v3
               with:
                   node-version: "16"
-            - uses: joelwmale/webhook-action@master
+            - name: Webhook call
+              uses: joelwmale/webhook-action@master
               with:
                   url: ${{ secrets.DEPLOY_WEBHOOK_URL }}/deploy-api
                   headers: '{"secret": "${{ secrets.WEBHOOK_SECRET }}"}'
