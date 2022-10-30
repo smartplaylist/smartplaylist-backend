@@ -11,20 +11,24 @@ db_connection, cursor = db.init_connection()
 
 def get_track_count():
     cursor.execute("SELECT count(*) as tracks_count FROM tracks")
-    return cursor.fetchone()[0]
+    return cursor.fetchone()
 
 
 def get_tracks_updated_at_minmax():
-    cursor.execute("SELECT min(updated_at) as min, max(updated_at) as max FROM tracks")
+    cursor.execute(
+        "SELECT min(updated_at) as min, max(updated_at) as max FROM tracks"
+    )
     return cursor.fetchone()
 
 
 def get_tracks_created_at_minmax():
-    cursor.execute("SELECT min(created_at) as min, max(created_at) as max FROM tracks")
+    cursor.execute(
+        "SELECT min(created_at) as min, max(created_at) as max FROM tracks"
+    )
     return cursor.fetchone()
 
 
-def get_tracks_with_audiofeatures_count():
+def get_tracks_with_audiofeature_count():
     cursor.execute("SELECT count(*) FROM tracks WHERE energy IS NOT NULL")
     return cursor.fetchone()
 
@@ -35,12 +39,16 @@ def get_album_count():
 
 
 def get_albums_updated_at_minmax():
-    cursor.execute("SELECT min(updated_at) as min, max(updated_at) as max FROM albums")
+    cursor.execute(
+        "SELECT min(updated_at) as min, max(updated_at) as max FROM albums"
+    )
     return cursor.fetchone()
 
 
 def get_albums_created_at_minmax():
-    cursor.execute("SELECT min(created_at) as min, max(created_at) as max FROM albums")
+    cursor.execute(
+        "SELECT min(created_at) as min, max(created_at) as max FROM albums"
+    )
     return cursor.fetchone()
 
 
@@ -50,12 +58,16 @@ def get_artist_count():
 
 
 def get_artists_updated_at_minmax():
-    cursor.execute("SELECT min(updated_at) as min, max(updated_at) as max FROM artists")
+    cursor.execute(
+        "SELECT min(updated_at) as min, max(updated_at) as max FROM artists"
+    )
     return cursor.fetchone()
 
 
 def get_artists_created_at_minmax():
-    cursor.execute("SELECT min(created_at) as min, max(created_at) as max FROM artists")
+    cursor.execute(
+        "SELECT min(created_at) as min, max(created_at) as max FROM artists"
+    )
     return cursor.fetchone()
 
 
@@ -66,10 +78,32 @@ def get_artists_album_updated_at_minmax():
     return cursor.fetchone()
 
 
-def main():
+def get_current_stats():
+    cursor.execute(
+        """SELECT total_tracks, total_albums, total_artists,
+                  tracks_with_audiofeature
+           FROM db_stats
+           ORDER BY created_at
+           DESC LIMIT 1"""
+    )
+    return cursor.fetchone()
 
+
+def get_album_release_date_minmax():
+    cursor.execute("SELECT min(release_date), max(release_date) FROM albums")
+    return cursor.fetchone()
+
+
+def get_track_release_date_minmax():
+    cursor.execute("SELECT min(release_date), max(release_date) FROM tracks")
+    return cursor.fetchone()
+
+
+def main():
+    current_stats = get_current_stats()
     track_count = get_track_count()
-    tracks_with_audiofeatures_count = get_tracks_with_audiofeatures_count()
+
+    tracks_with_audiofeature_count = get_tracks_with_audiofeature_count()
     tracks_updated_at_minmax = get_tracks_updated_at_minmax()
     tracks_created_at_minmax = get_tracks_created_at_minmax()
 
@@ -82,6 +116,9 @@ def main():
     artists_created_at_minmax = get_artists_created_at_minmax()
     artists_album_updated_at_minmax = get_artists_album_updated_at_minmax()
 
+    album_release_date_minmax = get_album_release_date_minmax()
+    track_release_date_minmax = get_track_release_date_minmax()
+
     try:
         cursor.execute(
             """INSERT INTO db_stats (
@@ -92,13 +129,17 @@ def main():
                 album_min_created_at, album_max_created_at,
                 artist_min_updated_at, artist_max_updated_at,
                 artist_min_created_at, artist_max_created_at,
-                artist_albums_updated_at_min, artist_albums_updated_at_max
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);""",
+                artist_albums_updated_at_min, artist_albums_updated_at_max,
+                tracks_added, albums_added, artists_added, tracks_with_audiofeatures_added,
+                albums_oldest_release_date, albums_newest_release_date,
+                tracks_oldest_release_date, tracks_newest_release_date
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);""",
             (
-                track_count,
-                album_count,
-                artist_count,
-                tracks_with_audiofeatures_count,
+                track_count[0],
+                album_count[0],
+                artist_count[0],
+                tracks_with_audiofeature_count[0],
                 tracks_updated_at_minmax[0],
                 tracks_updated_at_minmax[1],
                 tracks_created_at_minmax[0],
@@ -113,6 +154,14 @@ def main():
                 artists_created_at_minmax[1],
                 artists_album_updated_at_minmax[0],
                 artists_album_updated_at_minmax[1],
+                (track_count[0] - current_stats[0]),
+                (album_count[0] - current_stats[1]),
+                (artist_count[0] - current_stats[2]),
+                (tracks_with_audiofeature_count[0] - current_stats[3]),
+                album_release_date_minmax[0],
+                album_release_date_minmax[1],
+                track_release_date_minmax[0],
+                track_release_date_minmax[1],
             ),
         )
 
