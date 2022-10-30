@@ -23,9 +23,9 @@ def read_init():
     result = stats.get_stats()
 
     return {
-        "total_tracks": result[0],
-        "total_albums": result[1],
-        "total_artists": result[2],
+        "tracks": result[0],
+        "albums": result[1],
+        "artists": result[2],
         "tracks_with_audiofeature": result[3],
         "track_min_updated_at": timestamp_to_string(result[4]),
         "track_max_updated_at": timestamp_to_string(result[5]),
@@ -41,6 +41,15 @@ def read_init():
         "artist_max_created_at": timestamp_to_string(result[15]),
         "artist_albums_updated_at_min": timestamp_to_string(result[16]),
         "artist_albums_updated_at_max": timestamp_to_string(result[17]),
+        # 18 and 19 is updated_at and created_at
+        "tracks_added": result[20],
+        "albums_added": result[21],
+        "artists_added": result[22],
+        "tracks_with_audiofeatures_added": result[23],
+        "albums_oldest_release_date": timestamp_to_string(result[24]),
+        "albums_newest_release_date": timestamp_to_string(result[25]),
+        "tracks_oldest_release_date": timestamp_to_string(result[26]),
+        "tracks_newest_release_date": timestamp_to_string(result[27]),
     }
 
 
