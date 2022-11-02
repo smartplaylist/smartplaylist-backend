@@ -2,17 +2,18 @@ import json
 import os
 import sys
 
-import pika
-import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
-
 import imports.broker as broker
 import imports.db as db
+import pika
+import requests
+import spotipy
 from imports.logging import get_logger
+from spotipy.oauth2 import CacheFileHandler, SpotifyClientCredentials
 
 READING_QUEUE_NAME = "albums"
 WRITING_QUEUE_NAME = "tracks"
 MAX_RETRY_ATTEMPTS = 10
+SPOTIPY_AUTH_CACHE_PATH = ".cache-spotipy"
 
 log = get_logger(os.path.basename(__file__))
 
@@ -36,16 +37,19 @@ def main():
         except Exception as e:
             log.error("Unhandled exception", exception=e, exc_info=True)
         else:
-            log.info("💿 Album's details updated", spotify_id=data["id"], object="album")
+            log.info(
+                "💿 Album's details updated",
+                spotify_id=data["id"],
+                object="album",
+            )
 
     consume_channel = broker.create_channel(READING_QUEUE_NAME)
     publish_channel = broker.create_channel(WRITING_QUEUE_NAME)
     db_connection, cursor = db.init_connection()
     sp = spotipy.Spotify(
-        auth_manager=SpotifyClientCredentials(),
-        retries=3,
-        status_retries=3,
-        backoff_factor=0.3,
+        auth_manager=SpotifyClientCredentials(
+            cache_handler=CacheFileHandler(cache_path=SPOTIPY_AUTH_CACHE_PATH)
+        )
     )
 
     # Build artist data array to add it to the tracks
@@ -63,30 +67,52 @@ def main():
         album_artist_spotify_id = message["album_artist_spotify_id"]
 
         log.info(
-            "💿 Processing album", spotify_id=album_id, album=album_name, object="album"
+            "💿 Processing album",
+            spotify_id=album_id,
+            album=album_name,
+            object="album",
         )
 
-        attempts = 0
-        while attempts < MAX_RETRY_ATTEMPTS:
+        result = ""
+        attempt = 1
+        while attempt <= MAX_RETRY_ATTEMPTS:
             try:
                 result = sp.album(album_id=album_id)
                 log.info(
                     "Trying API request",
-                    attempt=attempts,
+                    attempt=attempt,
                     spotify_id=album_id,
                     object="album",
                 )
                 break
+            except spotipy.exceptions.SpotifyException as e:
+                attempt += 1
+                log.exception(
+                    "Spotipy Exception",
+                    msg=repr(e),
+                    attempt=attempt,
+                    spotify_id=album_id,
+                    object="album",
+                    exc_info=False,
+                )
             except Exception as e:
-                attempts += 1
+                attempt += 1
                 log.exception(
                     "Unhandled exception",
                     exception=e,
-                    attempt=attempts,
+                    attempt=attempt,
                     spotify_id=album_id,
                     object="album",
                     exc_info=True,
                 )
+
+        if result == "":
+            log.warning(
+                "🤷🏽 Unable to get album details",
+                spotify_id=album_id,
+                object="album",
+            )
+            return
 
         update_album(cursor, result)
 
@@ -145,7 +171,9 @@ def main():
                     ),
                 )
             except Exception as e:
-                log.exception("Unhandled exception", exception=e, exc_info=True)
+                log.exception(
+                    "Unhandled exception", exception=e, exc_info=True
+                )
             else:
                 log.info(
                     "🎧 Track " + ("saved" if cursor.rowcount else "exists"),

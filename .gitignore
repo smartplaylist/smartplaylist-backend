@@ -3,6 +3,7 @@
 *.code-workspace
 
 __pycache__/
+.cache
 .cache-spotipy
 spotify_api_cache.sqlite-journal
 .env
