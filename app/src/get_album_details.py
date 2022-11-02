@@ -74,8 +74,8 @@ def main():
         )
 
         result = ""
-        attempt = 1
-        while attempt <= MAX_RETRY_ATTEMPTS:
+        attempt = 0
+        while attempt < MAX_RETRY_ATTEMPTS:
             try:
                 result = sp.album(album_id=album_id)
                 log.info(
@@ -112,6 +112,8 @@ def main():
                 spotify_id=album_id,
                 object="album",
             )
+            # Remove "invalid id from the queue"
+            ch.basic_ack(method.delivery_tag)
             return
 
         update_album(cursor, result)
