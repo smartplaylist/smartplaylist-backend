@@ -1,12 +1,11 @@
-from datetime import datetime, timezone, timedelta
 import json
 import os
 import sys
-
-import pika
+from datetime import datetime, timedelta, timezone
 
 import imports.broker as broker
 import imports.db as db
+import pika
 from imports.logging import get_logger
 
 CHANNEL_ALBUMS_NAME = "artists"
@@ -24,8 +23,11 @@ def main():
         FROM artists
         WHERE albums_updated_at < %s
         ORDER BY albums_updated_at
-        LIMIT 50000;""",
-        (datetime.now(timezone.utc) - timedelta(hours=UPDATE_TIMEDELTA_HOURS),),
+        LIMIT 49999;""",
+        (
+            datetime.now(timezone.utc)
+            - timedelta(hours=UPDATE_TIMEDELTA_HOURS),
+        ),
     )
     artist_data = cursor.fetchall()
 
