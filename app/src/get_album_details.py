@@ -7,12 +7,13 @@ import imports.db as db
 import pika
 import requests
 import spotipy
+from imports.decorators import api_attempts
 from imports.logging import get_logger
 from spotipy.oauth2 import CacheFileHandler, SpotifyClientCredentials
 
 READING_QUEUE_NAME = "albums"
 WRITING_QUEUE_NAME = "tracks"
-MAX_RETRY_ATTEMPTS = 10
+
 SPOTIPY_AUTH_CACHE_PATH = ".cache-spotipy"
 
 log = get_logger(os.path.basename(__file__))
@@ -73,38 +74,13 @@ def main():
             object="album",
         )
 
-        result = ""
-        attempt = 0
-        while attempt < MAX_RETRY_ATTEMPTS:
-            try:
-                result = sp.album(album_id=album_id)
-                log.info(
-                    "Trying API request",
-                    attempt=attempt,
-                    spotify_id=album_id,
-                    object="album",
-                )
-                break
-            except spotipy.exceptions.SpotifyException as e:
-                attempt += 1
-                log.exception(
-                    "Spotipy Exception",
-                    msg=repr(e),
-                    attempt=attempt,
-                    spotify_id=album_id,
-                    object="album",
-                    exc_info=False,
-                )
-            except Exception as e:
-                attempt += 1
-                log.exception(
-                    "Unhandled exception",
-                    exception=e,
-                    attempt=attempt,
-                    spotify_id=album_id,
-                    object="album",
-                    exc_info=True,
-                )
+        @api_attempts
+        def get_albums(id, object_type):
+            result = ""
+            result = sp.album(album_id=id)
+            return result
+
+        result = get_albums(id=album_id, object_type="album")
 
         if result == "":
             log.warning(
