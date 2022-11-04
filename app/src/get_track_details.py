@@ -11,6 +11,7 @@ from imports.spotipy import sp
 
 READING_QUEUE_NAME = "tracks"
 PREFETCH_COUNT = 50
+AUDIO_FEATURE_MULTIPLIER = 100
 
 log = get_logger(os.path.basename(__file__))
 
@@ -72,13 +73,28 @@ def main():
                             item["key"],
                             item["loudness"],
                             (item["mode"] == 1),
-                            math.ceil(item["danceability"] * 1000),
-                            math.ceil(item["energy"] * 1000),
-                            math.ceil(item["speechiness"] * 1000),
-                            math.ceil(item["acousticness"] * 1000),
-                            math.ceil(item["instrumentalness"] * 1000),
-                            math.ceil(item["liveness"] * 1000),
-                            math.ceil(item["valence"] * 1000),
+                            math.ceil(
+                                item["danceability"] * AUDIO_FEATURE_MULTIPLIER
+                            ),
+                            math.ceil(
+                                item["energy"] * AUDIO_FEATURE_MULTIPLIER
+                            ),
+                            math.ceil(
+                                item["speechiness"] * AUDIO_FEATURE_MULTIPLIER
+                            ),
+                            math.ceil(
+                                item["acousticness"] * AUDIO_FEATURE_MULTIPLIER
+                            ),
+                            math.ceil(
+                                item["instrumentalness"]
+                                * AUDIO_FEATURE_MULTIPLIER
+                            ),
+                            math.ceil(
+                                item["liveness"] * AUDIO_FEATURE_MULTIPLIER
+                            ),
+                            math.ceil(
+                                item["valence"] * AUDIO_FEATURE_MULTIPLIER
+                            ),
                             item["tempo"],
                             item["time_signature"],
                             item["danceability"],
