@@ -5,16 +5,13 @@ import sys
 import imports.broker as broker
 import imports.db as db
 import pika
-import requests
-import spotipy
 from imports.decorators import api_attempts
 from imports.logging import get_logger
-from spotipy.oauth2 import CacheFileHandler, SpotifyClientCredentials
+from imports.spotipy import sp
 
 READING_QUEUE_NAME = "albums"
 WRITING_QUEUE_NAME = "tracks"
 
-SPOTIPY_AUTH_CACHE_PATH = ".cache-spotipy"
 
 log = get_logger(os.path.basename(__file__))
 
@@ -38,20 +35,11 @@ def main():
         except Exception as e:
             log.error("Unhandled exception", exception=e, exc_info=True)
         else:
-            log.info(
-                "💿 Album's details updated",
-                spotify_id=data["id"],
-                object="album",
-            )
+            log.info("💿 Album's details updated", id=data["id"])
 
     consume_channel = broker.create_channel(READING_QUEUE_NAME)
     publish_channel = broker.create_channel(WRITING_QUEUE_NAME)
     db_connection, cursor = db.init_connection()
-    sp = spotipy.Spotify(
-        auth_manager=SpotifyClientCredentials(
-            cache_handler=CacheFileHandler(cache_path=SPOTIPY_AUTH_CACHE_PATH)
-        )
-    )
 
     # Build artist data array to add it to the tracks
     cursor.execute("SELECT name, genres, popularity, followers FROM artists")
@@ -60,6 +48,10 @@ def main():
         for artist_data in cursor.fetchall()
     }
 
+    @api_attempts
+    def get_albums_details(id):
+        return sp.album(id)
+
     def callback(ch, method, properties, body):
         message = json.loads(body.decode())
         album_id = message["spotify_id"]
@@ -67,28 +59,13 @@ def main():
         album_artist = message["album_artist"]
         album_artist_spotify_id = message["album_artist_spotify_id"]
 
-        log.info(
-            "💿 Processing album",
-            spotify_id=album_id,
-            album=album_name,
-            object="album",
-        )
+        log.info("💿 Processing album", id=album_id)
 
-        @api_attempts
-        def get_albums(id, object_type):
-            result = ""
-            result = sp.album(album_id=id)
-            return result
+        result = {}
+        result = get_albums_details(album_id)
 
-        result = get_albums(id=album_id, object_type="album")
-
-        if result == "":
-            log.warning(
-                "🤷🏽 Unable to get album details",
-                spotify_id=album_id,
-                object="album",
-            )
-            # Remove "invalid id from the queue"
+        if result == {}:
+            log.warning("🤷🏽 Unable to get album details", id=album_id)
             ch.basic_ack(method.delivery_tag)
             return
 
@@ -155,9 +132,7 @@ def main():
             else:
                 log.info(
                     "🎧 Track " + ("saved" if cursor.rowcount else "exists"),
-                    spotify_id=item["id"],
-                    status="saved",
-                    object="track",
+                    id=item["id"],
                 )
                 # Publish to queue only if it was added (which means it was not in the db yet)
                 if cursor.rowcount:

@@ -1,37 +1,32 @@
-from datetime import datetime, timezone
 import json
 import os
 import sys
-
-import pika
-
-import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
-from spotipy.oauth2 import CacheFileHandler
+from datetime import datetime, timezone
 
 import imports.broker as broker
 import imports.db as db
+import pika
+from imports.decorators import api_attempts
 from imports.logging import get_logger
+from imports.spotipy import sp
 
 SPOTIFY_MARKET = os.environ["SPOTIFY_MARKET"]
 READING_QUEUE_NAME = "artists"
 WRITING_QUEUE_NAME = "albums"
-MAX_RETRY_ATTEMPTS = 10
 
-SPOTIPY_AUTH_CACHE_PATH = ".cache-spotipy"
 
 log = get_logger(os.path.basename(__file__))
 
 
 def filter_album(album):
     return (
-        album["release_date"] >= "2020"
-        and album["album_type"] != "compilation"
+        # album["release_date"] >= "1990" and
+        album["album_type"] != "compilation"
         and album["artists"][0]["name"] != "Various Artists"
     )
 
 
-def update_total_albums(artist_id, results, cursor):
+def update_total_albums(artist_id, result, cursor):
     """Update total albums for the current artist
     Even though we might not store all those albums
     It is used for determining if there are new releases in Spotify's database"""
@@ -39,16 +34,15 @@ def update_total_albums(artist_id, results, cursor):
     try:
         cursor.execute(
             "UPDATE artists SET total_albums=%s, albums_updated_at=%s WHERE spotify_id=%s;",
-            (results["total"], datetime.now(timezone.utc), artist_id),
+            (result["total"], datetime.now(timezone.utc), artist_id),
         )
     except Exception as e:
         log.exception("Unhandled exception", exception=e, exc_info=True)
     else:
         log.info(
             "👨🏽‍🎤 Updated total albums",
-            spotify_id=artist_id,
-            total_albums=results["total"],
-            object="artist",
+            id=artist_id,
+            total_albums=result["total"],
         )
 
 
@@ -56,11 +50,20 @@ def main():
     consume_channel = broker.create_channel(READING_QUEUE_NAME)
     publish_channel = broker.create_channel(WRITING_QUEUE_NAME)
     db_connection, cursor = db.init_connection()
-    sp = spotipy.Spotify(
-        auth_manager=SpotifyClientCredentials(
-            cache_handler=CacheFileHandler(cache_path=SPOTIPY_AUTH_CACHE_PATH)
+
+    @api_attempts
+    def get_artist_albums(id):
+        return sp.artist_albums(
+            artist_id=id,
+            album_type="album,single,appears_on",
+            offset=0,
+            limit=50,
+            country=SPOTIFY_MARKET,
         )
-    )
+
+    @api_attempts
+    def get_next(next):
+        return sp.next(next)
 
     def callback(ch, method, properties, body):
         """Handle received artist's data from the queue"""
@@ -70,74 +73,36 @@ def main():
         total_albums = message["total_albums"]
         artist_name = message["name"]
 
-        log.info(
-            "👨🏽‍🎤 Processing",
-            name=artist_name,
-            spotify_id=message["spotify_id"],
-            object="artist",
-        )
+        log.info("👨🏽‍🎤 Processing artist", id=message["spotify_id"])
 
-        attempts = 0
-        while attempts < MAX_RETRY_ATTEMPTS:
-            try:
-                results = sp.artist_albums(
-                    artist_id=artist_id,
-                    album_type="album,single,appears_on",
-                    offset=0,
-                    limit=50,
-                    country=SPOTIFY_MARKET,
-                )
-                log.info("⚡️ Trying API request", attempt=attempts)
-                break
-            except Exception as e:
-                attempts += 1
-                log.exception(
-                    "Unhandled exception", exception=e, attempt=attempts, exc_info=True
-                )
+        result = get_artist_albums(artist_id)
 
-        # Update `albums_updated_at` even if no new albums where added
-        update_total_albums(artist_id, results, cursor)
-
-        # To grab more (older) albums, we should get rid of that condition
-        if total_albums >= results["total"]:
-            log.info("👨🏽‍🎤 No new albums", spotify_id=artist_id, object="artist")
+        if result == {}:
+            log.warning("🤷🏽 Unable to get artist's albums", id=artist_id)
             ch.basic_ack(method.delivery_tag)
             return
 
-        new_albums = results["total"] - total_albums
+        # Update `albums_updated_at` even if no new albums where added
+        update_total_albums(artist_id, result, cursor)
 
-        log.info(
-            "👨🏽‍🎤 New releases",
-            spotify_id=artist_id,
-            albums_count=new_albums,
-            object="artist",
-        )
+        # To grab more (older) albums, we should get rid of that condition
+        if total_albums >= result["total"]:
+            log.info("👨🏽‍🎤 No new albums", id=artist_id)
+            ch.basic_ack(method.delivery_tag)
+            return
+
+        new_albums = result["total"] - total_albums
+        log.info("👨🏽‍🎤 New releases", id=artist_id, new_albums=new_albums)
 
         # We need to do make several requests since data is sorted by albumy type
         # and then by the release date
         # An option would be to do separate requestes for `albums` and `singles`
-        items = results["items"]
-        while results["next"]:
+        items = result["items"]
+        while result["next"]:
+            result = get_next(result)
+            items.extend(result["items"])
 
-            attempts = 0
-            # attemps hack because API is returning random 404 errors
-            while attempts < MAX_RETRY_ATTEMPTS:
-                try:
-                    results = sp.next(results)
-                    log.info("Trying API request", attempt=attempts)
-                    break
-                except Exception as e:
-                    attempts += 1
-                    log.exception(
-                        "Unhandled exception",
-                        exception=e,
-                        attempt=attempts,
-                        exc_info=True,
-                    )
-
-            items.extend(results["items"])
-
-        # TODO: Why not sort results by release date and only add those newest
+        # TODO: Why not sort result by release date and only add those newest
         # This will not add older realeases that were added by Spotify between 2021
         # checking new releases
         for i, item in enumerate(items):
@@ -172,14 +137,13 @@ def main():
                     ),
                 )
             except Exception as e:
-                log.exception("Unhandled exception", exception=e, exc_info=True)
+                log.exception(
+                    "Unhandled exception", exception=e, exc_info=True
+                )
             else:
                 log.info(
                     "💿 Album " + ("saved" if cursor.rowcount else "exists"),
-                    spotify_id=item["id"],
-                    name=item["name"],
-                    main_artist=artists[0],
-                    object="album",
+                    id=item["id"],
                 )
 
                 # Publish to queue only if it was added (which means it was not in the db yet)
@@ -195,7 +159,9 @@ def main():
                                     "spotify_id": item["id"],
                                     "album_name": item["name"],
                                     "album_artist": artists[0],
-                                    "album_artist_spotify_id": item["artists"][0]["id"],
+                                    "album_artist_spotify_id": item["artists"][
+                                        0
+                                    ]["id"],
                                 }
                             ),
                             properties=pika.BasicProperties(

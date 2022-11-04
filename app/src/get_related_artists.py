@@ -2,14 +2,12 @@ import json
 import os
 import sys
 
-import pika
-
-import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
-
 import imports.broker as broker
 import imports.db as db
+import pika
+from imports.decorators import api_attempts
 from imports.logging import get_logger
+from imports.spotipy import sp
 
 CHANNEL_RELATED_ARTISTS_NAME = "related_artists"
 CHANNEL_ALBUMS_NAME = "artists"
@@ -17,44 +15,41 @@ CHANNEL_ALBUMS_NAME = "artists"
 log = get_logger(os.path.basename(__file__))
 
 
+@api_attempts
+def get_related_artists(id):
+    return sp.artist_related_artists(id)
+
+
 def main():
+    consume_channel = broker.create_channel(CHANNEL_RELATED_ARTISTS_NAME)
+    channel_albums = broker.create_channel(CHANNEL_ALBUMS_NAME)
+    db_connection, cursor = db.init_connection()
+
     def update_artist(spotify_id):
         try:
             cursor.execute(
                 "UPDATE artists SET has_related=%s WHERE spotify_id=%s;",
-                (
-                    True,
-                    spotify_id,
-                ),
+                (True, spotify_id),
             )
         except Exception as e:
             log.error("Unhandled exception", exc_info=True)
         else:
-            log.info(
-                "👨🏽‍🎤 Artist's has_related updated",
-                spotify_id=spotify_id,
-                object="artist",
-                status="success",
-            )
-
-    consume_channel = broker.create_channel(CHANNEL_RELATED_ARTISTS_NAME)
-    channel_albums = broker.create_channel(CHANNEL_ALBUMS_NAME)
-    db_connection, cursor = db.init_connection()
-    sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials())
+            log.info("👨🏽‍🎤 Artist's has_related updated", id=spotify_id)
 
     def callback(ch, method, properties, body):
         message = json.loads(body.decode())
+        id = message["spotify_id"]
+        name = message["name"]
 
-        attempts = 0
-        while attempts < 10:
-            try:
-                related_artists = sp.artist_related_artists(message["spotify_id"])
-                break
-            except Exception as e:
-                attempts += 1
-                log.exception("Unhandled exception", exception=e)
+        result = {}
+        result = get_related_artists(id + "sdfs")
 
-        for i, item in enumerate(related_artists["artists"]):
+        if result == {}:
+            log.warning("🤷🏽 Unable to get artist's related artists", id=id)
+            ch.basic_ack(method.delivery_tag)
+            return
+
+        for _, item in enumerate(result["artists"]):
             try:
                 cursor.execute(
                     "INSERT INTO artists (spotify_id, name, popularity, followers, genres, genres_string, related_to_spotify_id, related_to, has_related, total_albums) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 0) ON CONFLICT DO NOTHING;",
@@ -65,8 +60,8 @@ def main():
                         item["followers"]["total"],
                         item["genres"],
                         " ".join(item["genres"]),
-                        message["spotify_id"],
-                        message["name"],
+                        id,
+                        name,
                         False,
                     ),
                 )
@@ -74,10 +69,9 @@ def main():
                 log.exception("Unhandled exception", exception=e)
             else:
                 log.info(
-                    "👨🏽‍🎤 Artist " + ("saved" if cursor.rowcount else "exists"),
-                    spotify_id=item["id"],
-                    object="artist",
-                    name=item["name"],
+                    "👨🏽‍🎤 Artist "
+                    + ("saved" if cursor.rowcount else "exists"),
+                    id=item["id"],
                 )
 
                 # Only publish if it was added
@@ -97,7 +91,7 @@ def main():
                         ),
                     )
 
-        update_artist(message["spotify_id"])
+        update_artist(id)
         ch.basic_ack(method.delivery_tag)
 
     consume_channel.basic_qos(prefetch_count=1)

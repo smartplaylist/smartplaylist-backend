@@ -2,34 +2,34 @@ import math
 import os
 import sys
 
-import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
-
 import imports.broker as broker
 import imports.db as db
+from imports.decorators import api_attempts
 from imports.logging import get_logger
+from imports.spotipy import sp
 
 READING_QUEUE_NAME = "tracks"
 PREFETCH_COUNT = 50
-MAX_RETRY_ATTEMPTS = 10
 
 log = get_logger(os.path.basename(__file__))
+
+
+@api_attempts
+def get_audio_features(ids):
+    return sp.audio_features(tracks=ids)
+
+
+@api_attempts
+def get_tracks(ids):
+    return sp.tracks(tracks=ids, market=[])
 
 
 def main():
     consume_channel = broker.create_channel(READING_QUEUE_NAME)
     db_connection, cursor = db.init_connection()
-    sp = spotipy.Spotify(
-        auth_manager=SpotifyClientCredentials(),
-        retries=3,
-        status_retries=3,
-        backoff_factor=0.3,
-    )
-
     messages = {}
 
     def callback(ch, method, properties, body):
-
         track_id = body.decode()
         messages[track_id] = method.delivery_tag
 
@@ -40,53 +40,17 @@ def main():
             )
 
             tracks = {}
+            result_audio_features = get_audio_features(messages.keys())
 
-            attempts = 0
-            while attempts < MAX_RETRY_ATTEMPTS:
-                try:
-                    result_audio_features = sp.audio_features(tracks=messages.keys())
-                    log.info(
-                        "Trying API request",
-                        attempt=attempts,
-                        object="track",
-                    )
-                    break
-                except Exception as e:
-                    attempts += 1
-                    log.exception(
-                        "Unhandled exception",
-                        exception=e,
-                        attempt=attempts,
-                        object="track",
-                        exc_info=True,
-                    )
             for i, v in enumerate(result_audio_features):
                 if not v or v is None:
                     log.info("🔉 No audio feature data", id=track_id)
-                    # We are only interested in tracks that have feature analysis
+                    # We are only interested in tracks that have audio_feature data
                     # We skip other tracks
                     continue
                 tracks[v["id"]] = v
 
-            attempts = 0
-            while attempts < MAX_RETRY_ATTEMPTS:
-                try:
-                    result_tracks = sp.tracks(tracks=messages.keys(), market=[])
-                    log.info(
-                        "Trying API request",
-                        attempt=attempts,
-                        object="track",
-                    )
-                    break
-                except Exception as e:
-                    attempts += 1
-                    log.exception(
-                        "Unhandled exception",
-                        exception=e,
-                        attempt=attempts,
-                        object="track",
-                        exc_info=True,
-                    )
+            result_tracks = get_tracks(messages.keys())
 
             for i, v in enumerate(result_tracks["tracks"]):
                 if not v["id"] in tracks:
@@ -94,15 +58,10 @@ def main():
                 tracks[v["id"]]["popularity"] = v["popularity"]
 
             for k, v in tracks.items():
-                log.info("🔉 Processing", spotify_id=k, object="track")
+                log.info("🔉 Processing", id=k)
 
                 if not "danceability" in v:
-                    log.info(
-                        "🔉 Skipping due to no audio_feature data",
-                        spotify_id=k,
-                        status="skipped",
-                        object="track",
-                    )
+                    log.info("🔉 Skipping due to no audio_feature data", id=k)
                     ch.basic_ack(messages[v["id"]])
                     continue
 
@@ -135,19 +94,14 @@ def main():
                         ),
                     )
                 except Exception as e:
-                    log.exception("🔉 Unhandled exception", id=v["id"], status="skipped")
+                    log.exception("🔉 Unhandled exception", id=v["id"])
                 else:
                     if cursor.rowcount:
-                        log.info(
-                            "🔉 Track updated",
-                            id=v["id"],
-                            status="updated",
-                        )
+                        log.info("🔉 Track updated", id=v["id"])
                     else:
                         log.info(
                             "🔉 Track not updated (probably not in the database)",
                             id=v["id"],
-                            status="skipped",
                         )
                 ch.basic_ack(messages[v["id"]])
             messages.clear()
