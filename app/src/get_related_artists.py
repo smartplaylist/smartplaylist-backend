@@ -36,13 +36,13 @@ def main():
         else:
             log.info("👨🏽‍🎤 Artist's has_related updated", id=spotify_id)
 
-    def callback(ch, method, properties, body):
+    def callback(ch, method, _, body):
         message = json.loads(body.decode())
         id = message["spotify_id"]
         name = message["name"]
 
         result = {}
-        result = get_related_artists(id + "sdfs")
+        result = get_related_artists(id)
 
         if result == {}:
             log.warning("🤷🏽 Unable to get artist's related artists", id=id)

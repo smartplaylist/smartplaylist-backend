@@ -46,24 +46,26 @@ def update_total_albums(artist_id, result, cursor):
         )
 
 
+@api_attempts
+def get_artist_albums(id):
+    return sp.artist_albums(
+        artist_id=id,
+        album_type="album,single,appears_on",
+        offset=0,
+        limit=50,
+        country=SPOTIFY_MARKET,
+    )
+
+
+@api_attempts
+def get_next(next):
+    return sp.next(next)
+
+
 def main():
     consume_channel = broker.create_channel(READING_QUEUE_NAME)
     publish_channel = broker.create_channel(WRITING_QUEUE_NAME)
     db_connection, cursor = db.init_connection()
-
-    @api_attempts
-    def get_artist_albums(id):
-        return sp.artist_albums(
-            artist_id=id,
-            album_type="album,single,appears_on",
-            offset=0,
-            limit=50,
-            country=SPOTIFY_MARKET,
-        )
-
-    @api_attempts
-    def get_next(next):
-        return sp.next(next)
 
     def callback(ch, method, properties, body):
         """Handle received artist's data from the queue"""

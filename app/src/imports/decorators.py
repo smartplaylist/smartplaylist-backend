@@ -5,7 +5,8 @@ from spotipy.exceptions import SpotifyException
 
 
 def normalize_arg(data):
-    return data if len(data) > 21 else data["href"]
+    return str(data) if "href" not in data else data["href"]
+    # return str(data)
 
 
 def api_attempts(_func=None, *, num_times=5):
@@ -15,14 +16,14 @@ def api_attempts(_func=None, *, num_times=5):
         @functools.wraps(func)
         def inner_function(*args):
             result = {}
-            for i in range(1, num_times + 1):
+            for attempt in range(1, num_times + 1):
                 try:
                     result = func(*args)
                 except SpotifyException as e:
                     log.exception(
                         "Spotipy Exception",
                         msg=repr(e),
-                        attempt=i,
+                        attempt=attempt,
                         arg0=normalize_arg(args[0]),
                         function=func.__name__,
                         exc_info=False,
@@ -31,18 +32,26 @@ def api_attempts(_func=None, *, num_times=5):
                     log.exception(
                         "Unhandled exception",
                         exception=e,
-                        attempt=i,
+                        attempt=attempt,
                         arg0=normalize_arg(args[0]),
                         function=func.__name__,
                         exc_info=True,
                     )
                 else:
-                    log.info(
-                        "⚡️ Trying API request",
-                        attempt=i,
-                        arg0=normalize_arg(args[0]),
-                        function=func.__name__,
-                    )
+                    if attempt <= 1:
+                        log.info(
+                            "⚡️ Trying API request",
+                            attempt=attempt,
+                            arg0=normalize_arg(args[0]),
+                            function=func.__name__,
+                        )
+                    else:
+                        log.warning(
+                            "⚡️ Trying API request",
+                            attempt=attempt,
+                            arg0=normalize_arg(args[0]),
+                            function=func.__name__,
+                        )
                     return result
             return result
 

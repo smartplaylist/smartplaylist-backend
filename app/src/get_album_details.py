@@ -16,6 +16,11 @@ WRITING_QUEUE_NAME = "tracks"
 log = get_logger(os.path.basename(__file__))
 
 
+@api_attempts
+def get_albums_details(id):
+    return sp.album(id)
+
+
 def main():
     def update_album(cursor, data):
         copyrights = []
@@ -47,10 +52,6 @@ def main():
         artist_data[0]: [artist_data[1], artist_data[2], artist_data[3]]
         for artist_data in cursor.fetchall()
     }
-
-    @api_attempts
-    def get_albums_details(id):
-        return sp.album(id)
 
     def callback(ch, method, properties, body):
         message = json.loads(body.decode())

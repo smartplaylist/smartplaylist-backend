@@ -1,3 +1,4 @@
+import json
 import math
 import os
 import sys
@@ -21,7 +22,8 @@ def get_audio_features(ids):
 
 @api_attempts
 def get_tracks(ids):
-    return sp.tracks(tracks=ids, market=[])
+    result = sp.tracks(tracks=ids, market=[])
+    return result["tracks"]
 
 
 def main():
@@ -33,77 +35,74 @@ def main():
         track_id = body.decode()
         messages[track_id] = method.delivery_tag
 
-        # Process PREFETCH_COUNT messages at once
         if len(messages) >= PREFETCH_COUNT:
-            log.info(
-                "🔉 Processing %s messages" % PREFETCH_COUNT,
-            )
+            log.info(f"🔉 Processing {PREFETCH_COUNT} messages")
 
             tracks = {}
-            result_audio_features = get_audio_features(messages.keys())
+            ids = list(messages.keys())
 
-            for i, v in enumerate(result_audio_features):
-                if not v or v is None:
-                    log.info("🔉 No audio feature data", id=track_id)
-                    # We are only interested in tracks that have audio_feature data
-                    # We skip other tracks
+            result_audio_features = get_audio_features(ids)
+
+            for i, item in enumerate(result_audio_features):
+                # Skip tracks with no audio_feature
+                if not item or item is None:
+                    log.info("🔉 No audio feature data", id=ids[i])
+                    ch.basic_ack(messages[ids[i]])
                     continue
-                tracks[v["id"]] = v
+                tracks[item["id"]] = item
 
-            result_tracks = get_tracks(messages.keys())
+            if len(tracks) <= 0:
+                messages.clear()
+                return
 
-            for i, v in enumerate(result_tracks["tracks"]):
-                if not v["id"] in tracks:
-                    tracks[v["id"]] = {"id": v["id"]}
-                tracks[v["id"]]["popularity"] = v["popularity"]
+            result_tracks = get_tracks(list(tracks.keys()))
 
-            for k, v in tracks.items():
-                log.info("🔉 Processing", id=k)
+            # Combine tracks data with audio_features data
+            for i, item in enumerate(result_tracks):
+                tracks[item["id"]]["popularity"] = item["popularity"]
 
-                if not "danceability" in v:
-                    log.info("🔉 Skipping due to no audio_feature data", id=k)
-                    ch.basic_ack(messages[v["id"]])
-                    continue
+            for i, item in tracks.items():
+                log.info("🔉 Processing", id=i)
 
                 try:
                     cursor.execute(
                         "UPDATE tracks SET popularity=%s, key=%s, loudness=%s, mode_is_major=%s, danceability=%s, energy=%s, speechiness=%s, acousticness=%s, instrumentalness=%s, liveness=%s, valence=%s, tempo=%s, time_signature=%s, danceability_raw=%s, energy_raw=%s, speechiness_raw=%s, acousticness_raw=%s, instrumentalness_raw=%s, liveness_raw=%s, valence_raw=%s, tempo_raw=%s WHERE spotify_id=%s;",
                         (
-                            v["popularity"],
-                            v["key"],
-                            v["loudness"],
-                            (v["mode"] == 1),
-                            math.ceil(v["danceability"] * 1000),
-                            math.ceil(v["energy"] * 1000),
-                            math.ceil(v["speechiness"] * 1000),
-                            math.ceil(v["acousticness"] * 1000),
-                            math.ceil(v["instrumentalness"] * 1000),
-                            math.ceil(v["liveness"] * 1000),
-                            math.ceil(v["valence"] * 1000),
-                            v["tempo"],
-                            v["time_signature"],
-                            v["danceability"],
-                            v["energy"],
-                            v["speechiness"],
-                            v["acousticness"],
-                            v["instrumentalness"],
-                            v["liveness"],
-                            v["valence"],
-                            v["tempo"],
-                            v["id"],
+                            item["popularity"],
+                            item["key"],
+                            item["loudness"],
+                            (item["mode"] == 1),
+                            math.ceil(item["danceability"] * 1000),
+                            math.ceil(item["energy"] * 1000),
+                            math.ceil(item["speechiness"] * 1000),
+                            math.ceil(item["acousticness"] * 1000),
+                            math.ceil(item["instrumentalness"] * 1000),
+                            math.ceil(item["liveness"] * 1000),
+                            math.ceil(item["valence"] * 1000),
+                            item["tempo"],
+                            item["time_signature"],
+                            item["danceability"],
+                            item["energy"],
+                            item["speechiness"],
+                            item["acousticness"],
+                            item["instrumentalness"],
+                            item["liveness"],
+                            item["valence"],
+                            item["tempo"],
+                            item["id"],
                         ),
                     )
                 except Exception as e:
-                    log.exception("🔉 Unhandled exception", id=v["id"])
+                    log.exception("🔉 Unhandled exception", id=item["id"])
                 else:
                     if cursor.rowcount:
-                        log.info("🔉 Track updated", id=v["id"])
+                        log.info("🔉 Track updated", id=item["id"])
                     else:
                         log.info(
                             "🔉 Track not updated (probably not in the database)",
-                            id=v["id"],
+                            id=item["id"],
                         )
-                ch.basic_ack(messages[v["id"]])
+                ch.basic_ack(messages[item["id"]])
             messages.clear()
 
     consume_channel.basic_qos(prefetch_count=PREFETCH_COUNT)
