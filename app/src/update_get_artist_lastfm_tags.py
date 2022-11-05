@@ -66,7 +66,7 @@ def main():
         f"""
         SELECT name, spotify_id
         FROM artists
-        WHERE lastfm_tags IS NULL
+        WHERE lastfm_tags_string = ''
         ORDER BY created_at ASC
         LIMIT {LASTFM_DAILY_ARTISTS_UPDATE}
         """
