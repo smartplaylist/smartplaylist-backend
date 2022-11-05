@@ -1,0 +1,12 @@
+production:
+  - version: 0.2.8
+    app: app-v0.2.8
+    api: api-v0.1.9
+    db_version_num: c1ce73b039bb
+    # www: v0.3.2
+
+  - version: 0.2.7
+    app: app-v0.2.7
+    api: api-v0.1.9
+    db_version_num: c1ce73b039bb
+    # www: v0.3.2
