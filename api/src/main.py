@@ -50,6 +50,9 @@ def read_init():
         "albums_newest_release_date": timestamp_to_string(result[25]),
         "tracks_oldest_release_date": timestamp_to_string(result[26]),
         "tracks_newest_release_date": timestamp_to_string(result[27]),
+        "artists_with_null_lastfm_tags": result[28],
+        "albums_with_null_lastfm_tags": result[29],
+        "tracks_with_null_lastfm_tags": result[30],
     }
 
 
