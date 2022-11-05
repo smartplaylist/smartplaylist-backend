@@ -1,9 +1,8 @@
 import os
 import sys
-from datetime import datetime, timezone
 
-import imports.db as db
 from imports.logging import get_logger
+import imports.db as db
 
 log = get_logger(os.path.basename(__file__))
 db_connection, cursor = db.init_connection()

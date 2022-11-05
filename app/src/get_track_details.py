@@ -1,13 +1,12 @@
-import json
 import math
 import os
 import sys
 
-import imports.broker as broker
-import imports.db as db
 from imports.decorators import api_attempts
 from imports.logging import get_logger
 from imports.spotipy import sp
+import imports.broker as broker
+import imports.db as db
 
 READING_QUEUE_NAME = "tracks"
 PREFETCH_COUNT = 50

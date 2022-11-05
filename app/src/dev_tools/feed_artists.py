@@ -2,11 +2,10 @@ import json
 import os
 import sys
 
-import pika
-
+from imports.logging import get_logger
 import imports.broker as broker
 import imports.db as db
-from imports.logging import get_logger
+import pika
 
 CHANNEL_ALBUMS_NAME = "artists"
 

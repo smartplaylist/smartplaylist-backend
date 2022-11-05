@@ -8,7 +8,6 @@ Create Date: 2022-02-09 22:14:25.019965
 from alembic import op
 import sqlalchemy as sa
 
-
 # revision identifiers, used by Alembic.
 revision = "9f24a192758c"
 down_revision = None
@@ -23,7 +22,9 @@ def upgrade():
         sa.Column("name", sa.Text, nullable=False),
         sa.Column("popularity", sa.SmallInteger, nullable=False),
         sa.Column("followers", sa.Integer, nullable=False),
-        sa.Column("genres", sa.dialects.postgresql.ARRAY(sa.String()), nullable=False),
+        sa.Column(
+            "genres", sa.dialects.postgresql.ARRAY(sa.String()), nullable=False
+        ),
         sa.Column("genres_string", sa.Text, nullable=False),
         sa.Column("total_albums", sa.SmallInteger, nullable=False),
         sa.Column("albums_updated_at", sa.TIMESTAMP, nullable=True),

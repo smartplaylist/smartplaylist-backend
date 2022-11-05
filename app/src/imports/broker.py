@@ -1,4 +1,5 @@
 import os
+
 import pika
 
 host = os.environ["RABBITMQ_HOSTNAME"]
@@ -17,7 +18,6 @@ def create_channel(name):
     channel = connection.channel()
     channel.queue_declare(queue=name, durable=True)
     channel.basic_qos(prefetch_count=1)
-
     return channel
 
 

@@ -2,16 +2,15 @@ import json
 import os
 import sys
 
-import imports.broker as broker
-import imports.db as db
-import pika
 from imports.decorators import api_attempts
 from imports.logging import get_logger
 from imports.spotipy import sp
+import imports.broker as broker
+import imports.db as db
+import pika
 
 READING_QUEUE_NAME = "albums"
 WRITING_QUEUE_NAME = "tracks"
-
 
 log = get_logger(os.path.basename(__file__))
 

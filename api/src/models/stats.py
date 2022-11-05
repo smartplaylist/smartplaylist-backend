@@ -1,7 +1,9 @@
 import os
 
 from lib import engine
-from sqlalchemy import TIMESTAMP, Column, text
+from sqlalchemy import Column
+from sqlalchemy import text
+from sqlalchemy import TIMESTAMP
 from sqlalchemy.orm import declarative_base
 
 db_sessionmaker = engine.get_sessionmaker()
@@ -14,6 +16,8 @@ class Stats(Base):
 
     def get_stats(self):
         with db_sessionmaker() as session:
-            statement = text("SELECT * FROM db_stats ORDER BY created_at DESC LIMIT 1")
+            statement = text(
+                "SELECT * FROM db_stats ORDER BY created_at DESC LIMIT 1"
+            )
             result = session.execute(statement).fetchone()
             return result

@@ -2,13 +2,12 @@ import json
 import os
 import sys
 
+from imports.logging import get_logger
+import imports.broker as broker
+import imports.db as db
 import pika
 import spotipy
 from spotipy.oauth2 import SpotifyPKCE
-
-import imports.broker as broker
-import imports.db as db
-from imports.logging import get_logger
 
 CHANNEL_ALBUMS_NAME = "artists"
 CHANNEL_RELATED_ARTISTS_NAME = "related_artists"
@@ -19,7 +18,9 @@ log = get_logger(os.path.basename(__file__))
 
 def main():
     channel_albums = broker.create_channel(CHANNEL_ALBUMS_NAME)
-    channel_related_artists = broker.create_channel(CHANNEL_RELATED_ARTISTS_NAME)
+    channel_related_artists = broker.create_channel(
+        CHANNEL_RELATED_ARTISTS_NAME
+    )
 
     db_connection, cursor = db.init_connection()
     sp = spotipy.Spotify(
@@ -27,9 +28,7 @@ def main():
     )
 
     spotify_me = sp.me()
-
     results = sp.current_user_followed_artists(limit=50)
-
     artists = results["artists"]["items"]
 
     # Iterate over results to get the full list
@@ -72,7 +71,9 @@ def main():
                         (item["id"], spotify_me["id"]),
                     )
                 except Exception as e:
-                    log.exception("Unhandled exception", exception=e, exc_info=True)
+                    log.exception(
+                        "Unhandled exception", exception=e, exc_info=True
+                    )
 
                 channel_albums.basic_publish(
                     exchange="",
@@ -91,7 +92,9 @@ def main():
                 channel_related_artists.basic_publish(
                     exchange="",
                     routing_key=CHANNEL_RELATED_ARTISTS_NAME,
-                    body=json.dumps({"spotify_id": item["id"], "name": item["name"]}),
+                    body=json.dumps(
+                        {"spotify_id": item["id"], "name": item["name"]}
+                    ),
                     properties=pika.BasicProperties(
                         delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
                     ),

@@ -1,10 +1,8 @@
 import os
-import queue
 import sys
 
-import pika
-
 from imports.logging import get_logger
+import pika
 
 
 def main():
