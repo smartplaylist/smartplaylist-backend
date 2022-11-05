@@ -4,16 +4,14 @@ Can be run for all albums or albums with NULL in `lastfm_tags`
 """
 import os
 import sys
-from datetime import datetime, timezone
-
-import pylast
 
 import imports.db as db
-from imports.logging import get_logger
+import imports.requests_caching
+import pylast
 from imports.lastfm import get_lastfm_network
-from imports.tools import progress_bar
-import imports.requests
+from imports.logging import get_logger
 
+LASTFM_DAILY_ALBUMS_UPDATE = os.getenv("LASTFM_DAILY_ALBUMS_UPDATE", 100_000)
 LASTFM_API_CACHE_FILENAME = ".cache-lastfm-api-albums"
 
 log = get_logger(os.path.basename(__file__))
@@ -30,6 +28,12 @@ def get_lastfm_album_tags(artist, album, lastfm):
     lastfm_album = pylast.Album(artist, album, lastfm)
     try:
         tags = lastfm_album.get_top_tags()
+    except pylast.WSError as e:
+        log.exception(
+            "Album not found on Last.fm",
+            album=artist + " - " + album,
+            exc_info=False,
+        )
     except Exception as e:
         log.exception("Unhandled exception", exception=e, exc_info=True)
     tags = [s.item.get_name().lower() for s in tags]
@@ -47,9 +51,8 @@ def save_lastfm_album_tags(spotify_id, tags, cursor):
     else:
         log.info(
             "💿 Added Last.fm tags to album",
-            spotify_id=spotify_id,
+            id=spotify_id,
             tags=" ".join(tags),
-            object="album",
         )
 
 
@@ -59,26 +62,22 @@ def main():
     # TODO: https://dellsystem.me/posts/psycopg2-offset-performance
     # Use server-side cursors to select partial results from db
     cursor.execute(
-        "SELECT main_artist, name, spotify_id FROM albums WHERE lastfm_tags IS NULL AND release_date > '2020-01-01' ORDER BY created_at ASC"
+        f"""
+        SELECT main_artist, name, spotify_id
+        FROM albums
+        WHERE lastfm_tags IS NULL
+        ORDER BY created_at ASC
+        LIMIT {LASTFM_DAILY_ALBUMS_UPDATE}
+        """
     )
-    items = cursor.fetchall()
-    total = len(items)
 
-    i = 0
-    progress_bar(i, total)
+    items = cursor.fetchall()
 
     for item in items:
         tags = get_lastfm_album_tags(item[0], item[1], lastfm)
         save_lastfm_album_tags(item[2], tags, cursor)
         if not tags:
-            log.info(
-                "💿 No Last.fm tags for album",
-                spotify_id=item[2],
-                artist=item[1],
-                object="album",
-            )
-        i += 1
-        progress_bar(i, total)
+            log.info("💿 No Last.fm tags for album", id=item[2])
 
     # Clean up and close connections
     db.close_connection(db_connection, cursor)
@@ -86,6 +85,7 @@ def main():
 
 if __name__ == "__main__":
     try:
+        print("Getting albums tags from Last.fm")
         main()
     except KeyboardInterrupt:
         print("Interrupted")

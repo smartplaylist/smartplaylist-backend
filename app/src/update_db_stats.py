@@ -99,6 +99,27 @@ def get_track_release_date_minmax():
     return cursor.fetchone()
 
 
+def get_artists_with_null_lastfm_tags():
+    cursor.execute(
+        """SELECT count(spotify_id) FROM artists WHERE lastfm_tags IS NULL"""
+    )
+    return cursor.fetchone()
+
+
+def get_albums_with_null_lastfm_tags():
+    cursor.execute(
+        """SELECT count(spotify_id) FROM albums WHERE lastfm_tags IS NULL"""
+    )
+    return cursor.fetchone()
+
+
+def get_tracks_with_null_lastfm_tags():
+    cursor.execute(
+        """SELECT count(spotify_id) FROM tracks WHERE lastfm_tags IS NULL"""
+    )
+    return cursor.fetchone()
+
+
 def main():
     current_stats = get_current_stats()
     track_count = get_track_count()
@@ -119,6 +140,10 @@ def main():
     album_release_date_minmax = get_album_release_date_minmax()
     track_release_date_minmax = get_track_release_date_minmax()
 
+    artists_with_null_lastfm_tags = get_artists_with_null_lastfm_tags()
+    albums_with_null_lastfm_tags = get_albums_with_null_lastfm_tags()
+    tracks_with_null_lastfm_tags = get_tracks_with_null_lastfm_tags()
+
     try:
         cursor.execute(
             """INSERT INTO db_stats (
@@ -132,9 +157,11 @@ def main():
                 artist_albums_updated_at_min, artist_albums_updated_at_max,
                 tracks_added, albums_added, artists_added, tracks_with_audiofeatures_added,
                 albums_oldest_release_date, albums_newest_release_date,
-                tracks_oldest_release_date, tracks_newest_release_date
+                tracks_oldest_release_date, tracks_newest_release_date,
+                artists_with_null_lastfm_tags, albums_with_null_lastfm_tags,
+                tracks_with_null_lastfm_tags
                 ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);""",
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);""",
             (
                 track_count[0],
                 album_count[0],
@@ -162,6 +189,9 @@ def main():
                 album_release_date_minmax[1],
                 track_release_date_minmax[0],
                 track_release_date_minmax[1],
+                artists_with_null_lastfm_tags,
+                albums_with_null_lastfm_tags,
+                tracks_with_null_lastfm_tags,
             ),
         )
 

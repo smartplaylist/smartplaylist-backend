@@ -4,15 +4,14 @@ Can be run for all artists or artists with NULL in `lastfm_tags`
 """
 import os
 import sys
-from datetime import datetime, timezone
-
-import pylast
 
 import imports.db as db
-from imports.logging import get_logger
+import imports.requests_caching
+import pylast
 from imports.lastfm import get_lastfm_network
-import imports.requests
+from imports.logging import get_logger
 
+LASTFM_DAILY_ARTISTS_UPDATE = os.getenv("LASTFM_DAILY_ARTISTS_UPDATE", 100_000)
 LASTFM_API_CACHE_FILENAME = ".cache-lastfm-api-artists"
 
 log = get_logger(os.path.basename(__file__))
@@ -26,9 +25,15 @@ def get_lastfm_artist_tags(artist, lastfm):
     a list of lowercased tags
     """
     tags = []
-    lastfrm_artist = pylast.Artist(artist, lastfm)
+    lastfm_artist = pylast.Artist(artist, lastfm)
     try:
-        tags = lastfrm_artist.get_top_tags(limit=10)
+        tags = lastfm_artist.get_top_tags(limit=25)
+    except pylast.WSError as e:
+        log.exception(
+            "Artist not found on Last.fm",
+            artist=artist,
+            exc_info=False,
+        )
     except Exception as e:
         log.exception("Unhandled exception", exception=e, exc_info=True)
         # '6', 'The artist you supplied could not be found'
@@ -48,30 +53,32 @@ def save_lastfm_artist_tags(artist_id, tags, cursor):
     else:
         log.info(
             "👨🏽‍🎤 Added Last.fm tags to artist",
-            spotify_id=artist_id,
+            id=artist_id,
             tags=" ".join(tags),
-            object="artist",
         )
 
 
 def main():
     db_connection, cursor = db.init_connection()
     lastfm = get_lastfm_network(cache_file=LASTFM_API_CACHE_FILENAME)
+
     cursor.execute(
-        "SELECT name, spotify_id FROM artists WHERE lastfm_tags IS NULL ORDER BY created_at ASC"
+        f"""
+        SELECT name, spotify_id
+        FROM artists
+        WHERE lastfm_tags IS NULL
+        ORDER BY created_at ASC
+        LIMIT {LASTFM_DAILY_ARTISTS_UPDATE}
+        """
     )
+
     artists = cursor.fetchall()
 
     for artist in artists:
         tags = get_lastfm_artist_tags(artist[0], lastfm)
         save_lastfm_artist_tags(artist[1], tags, cursor)
         if not tags:
-            log.info(
-                "👨🏽‍🎤 No Last.fm tags for artist",
-                spotify_id=artist[1],
-                artist=artist[0],
-                object="artist",
-            )
+            log.info("👨🏽‍🎤 No Last.fm tags for artist", id=artist[1])
 
     # Clean up and close connections
     db.close_connection(db_connection, cursor)
