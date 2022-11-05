@@ -5,8 +5,8 @@ Revises: 61e91bf8207b
 Create Date: 2022-11-05 01:51:01.704959
 
 """
-import sqlalchemy as sa
 from alembic import op
+import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = "bf1a5843503b"
@@ -16,15 +16,9 @@ depends_on = None
 
 
 def upgrade():
-    op.add_column(
-        "db_stats", sa.Column("artists_lastfm_tags_added", sa.Integer)
-    )
-    op.add_column(
-        "db_stats", sa.Column("albums_lastfm_tags_added", sa.Integer)
-    )
-    op.add_column(
-        "db_stats", sa.Column("tracks_lastfm_tags_added", sa.Integer)
-    )
+    op.add_column("db_stats", sa.Column("artists_lastfm_tags_added", sa.Integer))
+    op.add_column("db_stats", sa.Column("albums_lastfm_tags_added", sa.Integer))
+    op.add_column("db_stats", sa.Column("tracks_lastfm_tags_added", sa.Integer))
     pass
 
 

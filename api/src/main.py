@@ -1,8 +1,6 @@
 from typing import Union
 
 from lib.server import app
-from models.album import Album
-from models.artist import Artist
 from models.stats import Stats
 from models.track import Track
 

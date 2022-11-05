@@ -2,13 +2,12 @@ import json
 import os
 import sys
 
+from imports.logging import get_logger
+import imports.broker as broker
+import imports.db as db
 import pika
 import spotipy
 from spotipy.oauth2 import SpotifyPKCE
-
-import imports.broker as broker
-import imports.db as db
-from imports.logging import get_logger
 
 CHANNEL_ALBUMS_NAME = "artists"
 CHANNEL_RELATED_ARTISTS_NAME = "related_artists"
@@ -27,9 +26,7 @@ def main():
     )
 
     spotify_me = sp.me()
-
     results = sp.current_user_followed_artists(limit=50)
-
     artists = results["artists"]["items"]
 
     # Iterate over results to get the full list

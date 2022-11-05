@@ -1,18 +1,11 @@
-import os
-
 from lib.engine import get_sessionmaker
-from sqlalchemy import (
-    ARRAY,
-    TIMESTAMP,
-    Column,
-    Date,
-    Integer,
-    SmallInteger,
-    Text,
-    func,
-    select,
-    text,
-)
+from sqlalchemy import ARRAY
+from sqlalchemy import Column
+from sqlalchemy import Date
+from sqlalchemy import SmallInteger
+from sqlalchemy import Text
+from sqlalchemy import text
+from sqlalchemy import TIMESTAMP
 from sqlalchemy.orm import declarative_base
 
 db_sessionmaker = get_sessionmaker()

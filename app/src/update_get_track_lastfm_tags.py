@@ -5,11 +5,11 @@ Can be run for all tracks or tracks with NULL in `lastfm_tags`
 import os
 import sys
 
+from imports.lastfm import get_lastfm_network
+from imports.logging import get_logger
 import imports.db as db
 import imports.requests_caching
 import pylast
-from imports.lastfm import get_lastfm_network
-from imports.logging import get_logger
 
 LASTFM_DAILY_TRACKS_UPDATE = os.getenv("LASTFM_DAILY_TRACKS_UPDATE", 100_000)
 LASTFM_API_CACHE_FILENAME = ".cache-lastfm-api-tracks"
@@ -49,9 +49,7 @@ def save_lastfm_track_tags(spotify_id, tags, cursor):
     except Exception as e:
         log.exception("Unhandled exception", exception=e, exc_info=True)
     else:
-        log.info(
-            "💿 Added Last.fm tags to track", id=spotify_id, tags=" ".join(tags)
-        )
+        log.info("💿 Added Last.fm tags to track", id=spotify_id, tags=" ".join(tags))
 
 
 def main():

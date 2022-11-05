@@ -1,20 +1,16 @@
-import os
-
 from lib.engine import get_sessionmaker
-from sqlalchemy import (
-    TIMESTAMP,
-    Column,
-    Date,
-    Integer,
-    SmallInteger,
-    Text,
-    func,
-    text,
-)
-from sqlalchemy.orm import declarative_base
+from sqlalchemy import Column
+from sqlalchemy import Date
+from sqlalchemy import func
+from sqlalchemy import Integer
+from sqlalchemy import orm
+from sqlalchemy import SmallInteger
+from sqlalchemy import Text
+from sqlalchemy import text
+from sqlalchemy import TIMESTAMP
 
 db_sessionmaker = get_sessionmaker()
-Base = declarative_base()
+Base = orm.declarative_base()
 
 
 class Track(Base):
@@ -114,18 +110,10 @@ class Track(Base):
                 .filter(Track.tempo <= tempo_max)
                 .filter(Track.popularity >= popularity_min)
                 .filter(Track.popularity <= popularity_max)
-                .filter(
-                    Track.main_artist_popularity >= main_artist_popularity_min
-                )
-                .filter(
-                    Track.main_artist_popularity <= main_artist_popularity_max
-                )
-                .filter(
-                    Track.main_artist_followers >= main_artist_followers_min
-                )
-                .filter(
-                    Track.main_artist_followers <= main_artist_followers_max
-                )
+                .filter(Track.main_artist_popularity >= main_artist_popularity_min)
+                .filter(Track.main_artist_popularity <= main_artist_popularity_max)
+                .filter(Track.main_artist_followers >= main_artist_followers_min)
+                .filter(Track.main_artist_followers <= main_artist_followers_max)
                 .filter(Track.danceability >= danceability_min)
                 .filter(Track.danceability <= danceability_max)
                 .filter(Track.energy >= energy_min)
@@ -149,5 +137,5 @@ class Track(Base):
                 .all()
             )
             # print(x.result.compile(compile_kwargs={"literal_binds": True}))
-            # os._exit(1)
+            # exit(1)
             return result

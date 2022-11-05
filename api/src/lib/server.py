@@ -3,10 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(debug=True)
 
-origins = [
-    "https://smartplaylist.me",
-    "http://localhost:3001",
-]
+origins = ["https://smartplaylist.me", "http://localhost:3001"]
 
 app.add_middleware(
     CORSMiddleware,

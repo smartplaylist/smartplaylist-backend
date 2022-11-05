@@ -8,7 +8,6 @@ Create Date: 2022-03-29 21:12:28.698388
 from alembic import op
 import sqlalchemy as sa
 
-
 # revision identifiers, used by Alembic.
 revision = "366afade137c"
 down_revision = "0423be170124"
@@ -28,10 +27,14 @@ def upgrade():
         op.create_index("idx_tracks_tempo", "tracks", ["tempo"])
         op.create_index("idx_tracks_popularity", "tracks", ["popularity"])
         op.create_index(
-            "idx_tracks_main_artist_popularity", "tracks", ["main_artist_popularity"]
+            "idx_tracks_main_artist_popularity",
+            "tracks",
+            ["main_artist_popularity"],
         )
         op.create_index(
-            "idx_tracks_main_artist_followers", "tracks", ["main_artist_followers"]
+            "idx_tracks_main_artist_followers",
+            "tracks",
+            ["main_artist_followers"],
         )
         op.create_index("idx_tracks_danceability", "tracks", ["danceability"])
         op.create_index("idx_tracks_energy", "tracks", ["energy"])

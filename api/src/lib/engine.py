@@ -13,7 +13,5 @@ def get_sessionmaker():
     password = os.environ["POSTGRES_PASSWORD"]
 
     # Construct connection string
-    conn_string = "postgresql://{0}:{1}@{2}/{3}".format(
-        user, password, host, dbname
-    )
+    conn_string = f"postgresql://{user}:{password}@{host}/{dbname}"
     return sessionmaker(bind=create_engine(conn_string))

@@ -1,9 +1,8 @@
 import os
 import sys
-from datetime import datetime, timezone
 
-import imports.db as db
 from imports.logging import get_logger
+import imports.db as db
 
 log = get_logger(os.path.basename(__file__))
 db_connection, cursor = db.init_connection()
@@ -15,16 +14,12 @@ def get_track_count():
 
 
 def get_tracks_updated_at_minmax():
-    cursor.execute(
-        "SELECT min(updated_at) as min, max(updated_at) as max FROM tracks"
-    )
+    cursor.execute("SELECT min(updated_at) as min, max(updated_at) as max FROM tracks")
     return cursor.fetchone()
 
 
 def get_tracks_created_at_minmax():
-    cursor.execute(
-        "SELECT min(created_at) as min, max(created_at) as max FROM tracks"
-    )
+    cursor.execute("SELECT min(created_at) as min, max(created_at) as max FROM tracks")
     return cursor.fetchone()
 
 
@@ -39,16 +34,12 @@ def get_album_count():
 
 
 def get_albums_updated_at_minmax():
-    cursor.execute(
-        "SELECT min(updated_at) as min, max(updated_at) as max FROM albums"
-    )
+    cursor.execute("SELECT min(updated_at) as min, max(updated_at) as max FROM albums")
     return cursor.fetchone()
 
 
 def get_albums_created_at_minmax():
-    cursor.execute(
-        "SELECT min(created_at) as min, max(created_at) as max FROM albums"
-    )
+    cursor.execute("SELECT min(created_at) as min, max(created_at) as max FROM albums")
     return cursor.fetchone()
 
 
@@ -58,16 +49,12 @@ def get_artist_count():
 
 
 def get_artists_updated_at_minmax():
-    cursor.execute(
-        "SELECT min(updated_at) as min, max(updated_at) as max FROM artists"
-    )
+    cursor.execute("SELECT min(updated_at) as min, max(updated_at) as max FROM artists")
     return cursor.fetchone()
 
 
 def get_artists_created_at_minmax():
-    cursor.execute(
-        "SELECT min(created_at) as min, max(created_at) as max FROM artists"
-    )
+    cursor.execute("SELECT min(created_at) as min, max(created_at) as max FROM artists")
     return cursor.fetchone()
 
 
@@ -115,16 +102,12 @@ def get_artists_with_null_lastfm_tags():
 
 
 def get_albums_with_null_lastfm_tags():
-    cursor.execute(
-        """SELECT count(spotify_id) FROM albums WHERE lastfm_tags IS NULL"""
-    )
+    cursor.execute("""SELECT count(spotify_id) FROM albums WHERE lastfm_tags IS NULL""")
     return cursor.fetchone()
 
 
 def get_tracks_with_null_lastfm_tags():
-    cursor.execute(
-        """SELECT count(spotify_id) FROM tracks WHERE lastfm_tags IS NULL"""
-    )
+    cursor.execute("""SELECT count(spotify_id) FROM tracks WHERE lastfm_tags IS NULL""")
     return cursor.fetchone()
 
 

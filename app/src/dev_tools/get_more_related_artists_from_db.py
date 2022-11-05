@@ -2,11 +2,10 @@ import json
 import os
 import sys
 
-import pika
-
+from imports.logging import get_logger
 import imports.broker as broker
 import imports.db as db
-from imports.logging import get_logger
+import pika
 
 CHANNEL_RELATED_ARTISTS_NAME = "related_artists"
 CHANNEL_ALBUMS_NAME = "artists"
@@ -23,10 +22,7 @@ def main():
 
     for item in artist_data:
 
-        log.info(
-            "👨🏽‍🎤 Added related artist to Queue",
-            id=item[0],
-        )
+        log.info("👨🏽‍🎤 Added related artist to Queue", id=item[0])
 
         channel_albums.basic_publish(
             exchange="",

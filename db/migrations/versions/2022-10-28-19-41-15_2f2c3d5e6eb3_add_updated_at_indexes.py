@@ -21,9 +21,7 @@ def upgrade():
     op.create_index("idx_albums_created_at", "albums", ["created_at"])
     op.create_index("idx_artists_updated_at", "artists", ["updated_at"])
     op.create_index("idx_artists_created_at", "artists", ["created_at"])
-    op.create_index(
-        "idx_artists_albums_updated_at", "artists", ["albums_updated_at"]
-    )
+    op.create_index("idx_artists_albums_updated_at", "artists", ["albums_updated_at"])
 
     pass
 

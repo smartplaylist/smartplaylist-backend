@@ -6,7 +6,6 @@ from spotipy.exceptions import SpotifyException
 
 def normalize_arg(data):
     return str(data) if "href" not in data else data["href"]
-    # return str(data)
 
 
 def api_attempts(_func=None, *, num_times=5):

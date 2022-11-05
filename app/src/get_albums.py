@@ -1,14 +1,15 @@
+from datetime import datetime
+from datetime import timezone
 import json
 import os
 import sys
-from datetime import datetime, timezone
 
-import imports.broker as broker
-import imports.db as db
-import pika
 from imports.decorators import api_attempts
 from imports.logging import get_logger
 from imports.spotipy import sp
+import imports.broker as broker
+import imports.db as db
+import pika
 
 SPOTIFY_MARKET = os.environ["SPOTIFY_MARKET"]
 READING_QUEUE_NAME = "artists"
@@ -139,9 +140,7 @@ def main():
                     ),
                 )
             except Exception as e:
-                log.exception(
-                    "Unhandled exception", exception=e, exc_info=True
-                )
+                log.exception("Unhandled exception", exception=e, exc_info=True)
             else:
                 log.info(
                     "💿 Album " + ("saved" if cursor.rowcount else "exists"),
@@ -149,27 +148,24 @@ def main():
                 )
 
                 # Publish to queue only if it was added (which means it was not in the db yet)
-                if cursor.rowcount:
-                    # Only publish (to get details) for albums that pass the test
-                    # Should this be here? Where should I filter this?
-                    if filter_album(item):
-                        publish_channel.basic_publish(
-                            exchange="",
-                            routing_key=WRITING_QUEUE_NAME,
-                            body=json.dumps(
-                                {
-                                    "spotify_id": item["id"],
-                                    "album_name": item["name"],
-                                    "album_artist": artists[0],
-                                    "album_artist_spotify_id": item["artists"][
-                                        0
-                                    ]["id"],
-                                }
-                            ),
-                            properties=pika.BasicProperties(
-                                delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
-                            ),
-                        )
+                # Only publish (to get details) for albums that pass the test
+                # Should this be here? Where should I filter this?
+                if cursor.rowcount and filter_album(item):
+                    publish_channel.basic_publish(
+                        exchange="",
+                        routing_key=WRITING_QUEUE_NAME,
+                        body=json.dumps(
+                            {
+                                "spotify_id": item["id"],
+                                "album_name": item["name"],
+                                "album_artist": artists[0],
+                                "album_artist_spotify_id": item["artists"][0]["id"],
+                            }
+                        ),
+                        properties=pika.BasicProperties(
+                            delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
+                        ),
+                    )
 
         ch.basic_ack(method.delivery_tag)
 

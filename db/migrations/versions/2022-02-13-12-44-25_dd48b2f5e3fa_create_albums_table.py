@@ -5,10 +5,8 @@ Revises: 9f24a192758c
 Create Date: 2022-02-13 12:44:25.528634
 
 """
-from tokenize import String
 from alembic import op
 import sqlalchemy as sa
-
 
 # revision identifiers, used by Alembic.
 revision = "dd48b2f5e3fa"
@@ -23,7 +21,9 @@ def upgrade():
         sa.Column("name", sa.Text, nullable=False),
         sa.Column("main_artist", sa.Text, nullable=False),
         sa.Column(
-            "all_artists", sa.dialects.postgresql.ARRAY(sa.String()), nullable=False
+            "all_artists",
+            sa.dialects.postgresql.ARRAY(sa.String()),
+            nullable=False,
         ),
         sa.Column("from_discography_of", sa.Text, nullable=False),
         sa.Column("release_date", sa.Date, nullable=False),
@@ -31,12 +31,18 @@ def upgrade():
         sa.Column("popularity", sa.SmallInteger, nullable=True),
         sa.Column("label", sa.Text, nullable=True),
         sa.Column(
-            "copyrights", sa.dialects.postgresql.ARRAY(sa.String()), nullable=True
+            "copyrights",
+            sa.dialects.postgresql.ARRAY(sa.String()),
+            nullable=True,
         ),
         sa.Column(
             "album_group",
             sa.Enum(
-                "album", "single", "compilation", "appears_on", name="album_group_enum"
+                "album",
+                "single",
+                "compilation",
+                "appears_on",
+                name="album_group_enum",
             ),
             nullable=False,
         ),

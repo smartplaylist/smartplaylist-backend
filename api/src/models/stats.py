@@ -1,7 +1,7 @@
-import os
-
 from lib import engine
-from sqlalchemy import TIMESTAMP, Column, text
+from sqlalchemy import Column
+from sqlalchemy import text
+from sqlalchemy import TIMESTAMP
 from sqlalchemy.orm import declarative_base
 
 db_sessionmaker = engine.get_sessionmaker()

@@ -1,7 +1,6 @@
 import os
 
 import psycopg2
-from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 
 def init_connection():
@@ -17,7 +16,7 @@ def init_connection():
         host, user, password, dbname
     )
     connection = psycopg2.connect(conn_string)
-    connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+    connection.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
     cursor = connection.cursor()
 
     return connection, cursor

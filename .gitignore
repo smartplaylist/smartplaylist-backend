@@ -16,4 +16,5 @@ pgdata/
 rabbitmq_mnesia_dir/
 redis_cache/
 _NOTES*
+app/src/dev_tools/imports
 _DEV

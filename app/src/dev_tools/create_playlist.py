@@ -1,19 +1,18 @@
 from datetime import date
-import logging
 import os
 import sys
 
-import spotipy
-from spotipy.oauth2 import SpotifyOAuth
 import imports.db as db
 import imports.logger as logger
+import spotipy
+from spotipy.oauth2 import SpotifyOAuth
 
-scope = "playlist-modify-public"
+SCOPE = "playlist-modify-public"
 
 
 def main():
     db_connection, cursor = db.init_connection()
-    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=scope, open_browser=False))
+    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=SCOPE, open_browser=False))
     username = sp.me()["id"]
     log = logger.get_logger(os.path.basename(__file__))
 
