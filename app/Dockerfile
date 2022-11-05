@@ -7,5 +7,5 @@ RUN apk add --no-cache htop ncdu \
 
 WORKDIR /app
 ADD ./src/ ./
-RUN pip install --no-cache-dir pipenv && \
+RUN pip install --no-cache-dir pipenv==v2022.10.25 && \
     pipenv install

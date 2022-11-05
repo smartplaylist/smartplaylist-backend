@@ -8,6 +8,6 @@ RUN apk add --no-cache htop ncdu \
 
 WORKDIR /api
 COPY ./src/ ./
-RUN pip install --no-cache-dir pipenv && \
+RUN pip install --no-cache-dir pipenv==v2022.10.25 && \
     pipenv install
 CMD ["pipenv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8008", "--reload"]
