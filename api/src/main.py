@@ -53,6 +53,9 @@ def read_init():
         "artists_with_null_lastfm_tags": result[28],
         "albums_with_null_lastfm_tags": result[29],
         "tracks_with_null_lastfm_tags": result[30],
+        "artists_lastfm_tags_added": result[31],
+        "albums_lastfm_tags_added": result[32],
+        "tracks_lastfm_tags_added": result[33],
     }
 
 
