@@ -80,11 +80,19 @@ def get_artists_album_updated_at_minmax():
 
 def get_current_stats():
     cursor.execute(
-        """SELECT total_tracks, total_albums, total_artists,
-                  tracks_with_audiofeature
-           FROM db_stats
-           ORDER BY created_at
-           DESC LIMIT 1"""
+        """
+        SELECT
+            total_tracks,
+            total_albums,
+            total_artists,
+            tracks_with_audiofeature,
+            artists_with_null_lastfm_tags,
+            albums_with_null_lastfm_tags,
+            tracks_with_null_lastfm_tags
+        FROM db_stats
+        ORDER BY created_at DESC
+        LIMIT 1
+        """
     )
     return cursor.fetchone()
 
@@ -146,22 +154,25 @@ def main():
 
     try:
         cursor.execute(
-            """INSERT INTO db_stats (
-                total_tracks, total_albums, total_artists, tracks_with_audiofeature,
-                track_min_updated_at, track_max_updated_at,
-                track_min_created_at, track_max_created_at,
-                album_min_updated_at, album_max_updated_at,
-                album_min_created_at, album_max_created_at,
-                artist_min_updated_at, artist_max_updated_at,
-                artist_min_created_at, artist_max_created_at,
-                artist_albums_updated_at_min, artist_albums_updated_at_max,
-                tracks_added, albums_added, artists_added, tracks_with_audiofeatures_added,
-                albums_oldest_release_date, albums_newest_release_date,
-                tracks_oldest_release_date, tracks_newest_release_date,
-                artists_with_null_lastfm_tags, albums_with_null_lastfm_tags,
-                tracks_with_null_lastfm_tags
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);""",
+            """
+            INSERT INTO db_stats (
+            total_tracks, total_albums, total_artists, tracks_with_audiofeature,
+            track_min_updated_at, track_max_updated_at,
+            track_min_created_at, track_max_created_at,
+            album_min_updated_at, album_max_updated_at,
+            album_min_created_at, album_max_created_at,
+            artist_min_updated_at, artist_max_updated_at,
+            artist_min_created_at, artist_max_created_at,
+            artist_albums_updated_at_min, artist_albums_updated_at_max,
+            tracks_added, albums_added, artists_added, tracks_with_audiofeatures_added,
+            albums_oldest_release_date, albums_newest_release_date,
+            tracks_oldest_release_date, tracks_newest_release_date,
+            artists_with_null_lastfm_tags, albums_with_null_lastfm_tags, tracks_with_null_lastfm_tags,
+            artists_lastfm_tags_added, albums_lastfm_tags_added, tracks_lastfm_tags_added
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+            %s, %s, %s);
+            """,
             (
                 track_count[0],
                 album_count[0],
@@ -192,6 +203,9 @@ def main():
                 artists_with_null_lastfm_tags,
                 albums_with_null_lastfm_tags,
                 tracks_with_null_lastfm_tags,
+                (current_stats[4] - artists_with_null_lastfm_tags[0]),
+                (current_stats[5] - albums_with_null_lastfm_tags[0]),
+                (current_stats[6] - tracks_with_null_lastfm_tags[0]),
             ),
         )
 
