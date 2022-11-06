@@ -16,10 +16,27 @@ depends_on = None
 
 
 def upgrade():
-    op.add_column("db_stats", sa.Column("tracks_added", sa.Integer))
-    op.add_column("db_stats", sa.Column("albums_added", sa.Integer))
-    op.add_column("db_stats", sa.Column("artists_added", sa.Integer))
-    op.add_column("db_stats", sa.Column("tracks_with_audiofeatures_added", sa.Integer))
+    op.add_column(
+        "db_stats",
+        sa.Column("tracks_added", sa.Integer, nullable=False, server_default="0"),
+    )
+    op.add_column(
+        "db_stats",
+        sa.Column("albums_added", sa.Integer, nullable=False, server_default="0"),
+    )
+    op.add_column(
+        "db_stats",
+        sa.Column("artists_added", sa.Integer, nullable=False, server_default="0"),
+    )
+    op.add_column(
+        "db_stats",
+        sa.Column(
+            "tracks_with_audiofeatures_added",
+            sa.Integer,
+            nullable=False,
+            server_default="0",
+        ),
+    )
     op.add_column("db_stats", sa.Column("albums_oldest_release_date", sa.Date))
     op.add_column("db_stats", sa.Column("albums_newest_release_date", sa.Date))
     op.add_column("db_stats", sa.Column("tracks_oldest_release_date", sa.Date))

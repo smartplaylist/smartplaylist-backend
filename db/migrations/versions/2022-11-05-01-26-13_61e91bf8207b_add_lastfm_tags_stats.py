@@ -16,9 +16,33 @@ depends_on = None
 
 
 def upgrade():
-    op.add_column("db_stats", sa.Column("artists_with_null_lastfm_tags", sa.Integer))
-    op.add_column("db_stats", sa.Column("albums_with_null_lastfm_tags", sa.Integer))
-    op.add_column("db_stats", sa.Column("tracks_with_null_lastfm_tags", sa.Integer))
+    op.add_column(
+        "db_stats",
+        sa.Column(
+            "artists_with_null_lastfm_tags",
+            sa.Integer,
+            nullable=False,
+            server_default="0",
+        ),
+    )
+    op.add_column(
+        "db_stats",
+        sa.Column(
+            "albums_with_null_lastfm_tags",
+            sa.Integer,
+            nullable=False,
+            server_default="0",
+        ),
+    )
+    op.add_column(
+        "db_stats",
+        sa.Column(
+            "tracks_with_null_lastfm_tags",
+            sa.Integer,
+            nullable=False,
+            server_default="0",
+        ),
+    )
     pass
 
 
