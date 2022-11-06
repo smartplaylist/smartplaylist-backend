@@ -7,7 +7,6 @@ import imports.broker as broker
 import imports.db as db
 import pika
 import spotipy
-from spotipy.oauth2 import SpotifyPKCE
 
 CHANNEL_ALBUMS_NAME = "artists"
 CHANNEL_RELATED_ARTISTS_NAME = "related_artists"
@@ -22,10 +21,9 @@ def main():
 
     db_connection, cursor = db.init_connection()
     sp = spotipy.Spotify(
-        auth_manager=SpotifyPKCE(scope=SPOTIFY_SCOPE, open_browser=False)
+        auth_manager=spotipy.oauth2.SpotifyPKCE(scope=SPOTIFY_SCOPE, open_browser=False)
     )
 
-    spotify_me = sp.me()
     results = sp.current_user_followed_artists(limit=50)
     artists = results["artists"]["items"]
 
@@ -55,21 +53,7 @@ def main():
         else:
             # Only add to queue if it was added to the db
             if cursor.rowcount:
-                log.info(
-                    "👨🏽‍🎤 Artist saved",
-                    id=item["id"],
-                    name=item["name"],
-                    status="saved",
-                )
-
-                try:
-                    # Save user followed artist relation
-                    cursor.execute(
-                        "INSERT INTO user_followed_artist (spotify_id, user_id) VALUES (%s, %s);",
-                        (item["id"], spotify_me["id"]),
-                    )
-                except Exception as e:
-                    log.exception("Unhandled exception", exception=e, exc_info=True)
+                log.info("👨🏽‍🎤 Artist saved", id=item["id"])
 
                 channel_albums.basic_publish(
                     exchange="",
@@ -94,12 +78,7 @@ def main():
                     ),
                 )
             else:
-                log.info(
-                    "👨🏽‍🎤 Artist exists",
-                    id=item["id"],
-                    name=item["name"],
-                    status="skipped",
-                )
+                log.info("👨🏽‍🎤 Artist exists", id=item["id"])
 
     # Clean up and close connections
     broker.close_connection()

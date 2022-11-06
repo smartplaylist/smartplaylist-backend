@@ -16,4 +16,4 @@ class Stats(Base):
         with db_sessionmaker() as session:
             statement = text("SELECT * FROM db_stats ORDER BY created_at DESC LIMIT 1")
             result = session.execute(statement).fetchone()
-            return result
+            return result if result != None else {}

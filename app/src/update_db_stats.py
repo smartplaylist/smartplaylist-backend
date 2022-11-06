@@ -113,6 +113,11 @@ def get_tracks_with_null_lastfm_tags():
 
 def main():
     current_stats = get_current_stats()
+
+    # First run only for an empty stats database, populates 7 fields
+    if current_stats == None:
+        current_stats = [0] * 7
+
     track_count = get_track_count()
 
     tracks_with_audiofeature_count = get_tracks_with_audiofeature_count()
