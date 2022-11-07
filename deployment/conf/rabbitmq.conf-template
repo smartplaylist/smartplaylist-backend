@@ -1,0 +1,4 @@
+log.file           = rabbit.log
+log.dir            = /data/logs/rabbitmq
+log.file.level     = info
+log.file.formatter = json

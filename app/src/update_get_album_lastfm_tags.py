@@ -8,11 +8,11 @@ import sys
 from imports.lastfm import get_lastfm_network
 from imports.logging import get_logger
 import imports.db as db
-import imports.requests_caching
 import pylast
 
 LASTFM_DAILY_ALBUMS_UPDATE = os.getenv("LASTFM_DAILY_ALBUMS_UPDATE", 100_000)
 LASTFM_API_CACHE_FILENAME = ".cache-lastfm-api-albums"
+STATUS_INVALID_PARAMS = "6"  # as pylast.STATUS_INVALID_PARAMS
 
 log = get_logger(os.path.basename(__file__))
 
@@ -29,13 +29,13 @@ def get_lastfm_album_tags(artist, album, lastfm):
     try:
         tags = lastfm_album.get_top_tags()
     except pylast.WSError as e:
-        log.exception(
-            "Album not found on Last.fm",
-            album=artist + " - " + album,
-            exc_info=False,
-        )
+        if STATUS_INVALID_PARAMS == e.status:
+            log.info("Album not found on Last.fm", album=artist + " - " + album)
+        else:
+            log.exception("Pylast WSError exception", exception=e, exc_info=True)
     except Exception as e:
         log.exception("Unhandled exception", exception=e, exc_info=True)
+
     tags = [s.item.get_name().lower() for s in tags]
     return tags
 
@@ -49,11 +49,7 @@ def save_lastfm_album_tags(spotify_id, tags, cursor):
     except Exception as e:
         log.exception("Unhandled exception", exception=e, exc_info=True)
     else:
-        log.info(
-            "💿 Added Last.fm tags to album",
-            id=spotify_id,
-            tags=" ".join(tags),
-        )
+        log.info("💿 Added Last.fm tags to album", id=spotify_id, tags=" ".join(tags))
 
 
 def main():
