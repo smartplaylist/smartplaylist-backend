@@ -11,17 +11,59 @@ import pika
 
 READING_QUEUE_NAME = "albums"
 WRITING_QUEUE_NAME = "tracks"
+PREFETCH_COUNT = 20
 
 log = get_logger(os.path.basename(__file__))
 
 
 @api_attempts
-def get_albums_details(id):
-    return sp.album(id)
+def get_albums_details(ids):
+    return sp.albums(ids)
+
+
+def normalize_release_date(date):
+    if len(date) == 4:
+        if "0000" == date:
+            date = "0001"
+        date += "-01-01"
+    elif 7 == len(date):
+        date += "-01"
+    return date
+
+
+# def get_track_genres(track, artists):
+#     genres = []
+#     for artist in track["artists"]:
+#         if artist["name"] in artists:
+#             genres.extend(artists[artist["name"]][0])
+
+#     return genres
 
 
 def main():
-    def update_album(cursor, data):
+    consume_channel = broker.create_channel(READING_QUEUE_NAME)
+    publish_channel = broker.create_channel(WRITING_QUEUE_NAME)
+    db_connection, cursor = db.init_connection()
+
+    def get_artist_data():
+        # Build artist data array to add it to the tracks
+        cursor.execute("SELECT name, genres, popularity, followers FROM artists")
+        return {
+            artist_data[0]: [artist_data[1], artist_data[2], artist_data[3]]
+            for artist_data in cursor.fetchall()
+        }
+
+    def publish_to_broker(data):
+        publish_channel.basic_publish(
+            exchange="",
+            routing_key=WRITING_QUEUE_NAME,
+            body=data,
+            properties=pika.BasicProperties(
+                delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
+            ),
+        )
+
+    def update_album(data):
         copyrights = []
 
         for copyright in data["copyrights"]:
@@ -41,116 +83,109 @@ def main():
         else:
             log.info("💿 Album's details updated", id=data["id"])
 
-    consume_channel = broker.create_channel(READING_QUEUE_NAME)
-    publish_channel = broker.create_channel(WRITING_QUEUE_NAME)
-    db_connection, cursor = db.init_connection()
-
-    # Build artist data array to add it to the tracks
-    cursor.execute("SELECT name, genres, popularity, followers FROM artists")
-    artist_data = {
-        artist_data[0]: [artist_data[1], artist_data[2], artist_data[3]]
-        for artist_data in cursor.fetchall()
-    }
+    atrist_data = get_artist_data()
+    messages = []
 
     def callback(ch, method, properties, body):
         message = json.loads(body.decode())
-        album_id = message["spotify_id"]
-        album_name = message["album_name"]
-        album_artist = message["album_artist"]
-        album_artist_spotify_id = message["album_artist_spotify_id"]
+        message["delivery_tag"] = method.delivery_tag
 
-        log.info("💿 Processing album", id=album_id)
+        messages.append(message)
 
-        result = {}
-        result = get_albums_details(album_id)
+        if len(messages) >= PREFETCH_COUNT:
+            log.info(f"💿 Processing {PREFETCH_COUNT} messages")
 
-        if result == {}:
-            log.warning("🤷🏽 Unable to get album details", id=album_id)
-            ch.basic_ack(method.delivery_tag)
-            return
+            ids = [i["spotify_id"] for i in messages]
 
-        update_album(cursor, result)
+            result = get_albums_details(ids)
+            albums = result["albums"]
 
-        tracks = result["tracks"]["items"]
-        album_release_date = result["release_date"]
-        if len(album_release_date) == 4:
-            if "0000" == album_release_date:
-                album_release_date = "0001"
-            album_release_date += "-01-01"
-        elif len(album_release_date) == 7:
-            album_release_date += "-01"
+            for i in range(len(messages)):
+                album = albums[i]
+                message = messages[i]
 
-        for i, item in enumerate(tracks):
-            artists = []
-            genres = []
-            main_artist_popularity = None
-            main_artist_followers = None
+                log.info("💿 Processing album", id=album["id"])
 
-            for artist in item["artists"]:
-                artists.append(artist["name"])
+                if album == {}:
+                    log.warning("🤷🏽 Unable to get album details", id=album["id"])
+                    ch.basic_ack(message["delivery_tag"])
+                    return
 
-                # We use data of the last artist from the track, that exists in `artists` table
-                # We should either grab that data from Spotify
-                # TODO: or take the maximum from artists we have (the most popular is the most importatnt)
-                if artist["name"] in artist_data:
-                    genres.extend(artist_data[artist["name"]][0])
-                    main_artist_popularity = artist_data[artist["name"]][1]
-                    main_artist_followers = artist_data[artist["name"]][2]
+                update_album(album)
 
-            genres = list(set(genres))
+                release_date = normalize_release_date(album["release_date"])
+                tracks = album["tracks"]["items"]
 
-            try:
-                cursor.execute(
-                    "INSERT INTO tracks (spotify_id, name, name_fts_string, main_artist, main_artist_popularity, main_artist_followers, all_artists, all_artists_string, release_date, genres, genres_string, track_number, disc_number, duration_ms, explicit, preview_url, from_album, from_album_spotify_id, album_artist, album_artist_spotify_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING;",
-                    (
-                        item["id"],
-                        item["name"],
-                        item["name"].lower(),
-                        artists[0],
-                        main_artist_popularity,
-                        main_artist_followers,
-                        artists,
-                        " ".join(artists).lower(),
-                        album_release_date,
-                        genres,
-                        " ".join(genres).lower(),
-                        item["track_number"],
-                        item["disc_number"],
-                        item["duration_ms"],
-                        item["explicit"],
-                        item["preview_url"],
-                        album_name,
-                        album_id,
-                        album_artist,
-                        album_artist_spotify_id,
-                    ),
-                )
-            except Exception as e:
-                log.exception("Unhandled exception", exception=e, exc_info=True)
-            else:
-                log.info(
-                    "🎧 Track " + ("saved" if cursor.rowcount else "exists"),
-                    id=item["id"],
-                )
-                # Publish to queue only if it was added (which means it was not in the db yet)
-                if cursor.rowcount:
-                    publish_channel.basic_publish(
-                        exchange="",
-                        routing_key=WRITING_QUEUE_NAME,
-                        body=item["id"],
-                        properties=pika.BasicProperties(
-                            delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
-                        ),
-                    )
+                for track in tracks:
+                    artists = [artist["name"] for artist in track["artists"]]
+                    # genres = get_track_genres(track, artists)
+                    genres = []
+                    main_artist_popularity = None
+                    main_artist_followers = None
 
-        ch.basic_ack(method.delivery_tag)
+                    for artist in track["artists"]:
+                        # TODO: or take the maximum from artists we have (the most popular is the most importatnt)
+                        if artist["name"] in atrist_data:
+                            genres.extend(atrist_data[artist["name"]][0])
+                            # Set popularity of the first available artist
+                            if main_artist_popularity == None:
+                                main_artist_popularity = atrist_data[artist["name"]][1]
+                            # Set followers of the first available artist
+                            if main_artist_followers == None:
+                                main_artist_followers = atrist_data[artist["name"]][2]
 
-    consume_channel.basic_qos(prefetch_count=1)
+                    genres = list(set(genres))
+
+                    try:
+                        cursor.execute(
+                            "INSERT INTO tracks (spotify_id, name, name_fts_string, main_artist, main_artist_popularity, main_artist_followers, all_artists, all_artists_string, release_date, genres, genres_string, track_number, disc_number, duration_ms, explicit, preview_url, from_album, from_album_spotify_id, album_artist, album_artist_spotify_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING;",
+                            (
+                                track["id"],
+                                track["name"],
+                                track["name"].lower(),
+                                artists[0],
+                                main_artist_popularity,
+                                main_artist_followers,
+                                artists,
+                                " ".join(artists).lower(),
+                                release_date,
+                                genres,
+                                " ".join(genres).lower(),
+                                track["track_number"],
+                                track["disc_number"],
+                                track["duration_ms"],
+                                track["explicit"],
+                                track["preview_url"],
+                                album["name"],
+                                album["id"],
+                                album["artists"][0]["name"],
+                                album["artists"][0]["id"],
+                            ),
+                        )
+                    except Exception as e:
+                        log.exception("Unhandled exception", exception=e, exc_info=True)
+                    else:
+                        log.info(
+                            "🎧 Track " + ("saved" if cursor.rowcount else "exists"),
+                            id=track["id"],
+                        )
+
+                        # Publish to queue only if it was added (which means it was not in the db yet)
+                        if cursor.rowcount:
+                            publish_to_broker(track["id"])
+
+                ch.basic_ack(message["delivery_tag"])
+
+            messages.clear()
+
+    consume_channel.basic_qos(prefetch_count=PREFETCH_COUNT)
     consume_channel.basic_consume(
         on_message_callback=callback, queue=READING_QUEUE_NAME
     )
 
-    print(" [*] Waiting for messages. To exit press CTRL+C")
+    print(
+        f' [*] Waiting for messages in "{READING_QUEUE_NAME}" queue. To exit press CTRL+C'
+    )
     consume_channel.start_consuming()
 
     # Clean up and close connections
