@@ -6,7 +6,7 @@ from imports.logging import get_logger
 import imports.db as db
 
 WRITING_QUEUE_NAME = "tracks"
-ITERATION_SIZE = os.environ.get("TRACKS_UPDATE_ITERATION_SIZE", 10_000)
+ITERATION_SIZE = int(os.environ.get("TRACKS_UPDATE_ITERATION_SIZE", 10_000))
 
 log = get_logger(os.path.basename(__file__))
 
