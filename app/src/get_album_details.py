@@ -1,4 +1,5 @@
 import json
+from math import ceil
 import os
 import sys
 
@@ -83,7 +84,7 @@ def main():
         else:
             log.info("💿 Album's details updated", id=data["id"])
 
-    atrist_data = get_artist_data()
+    artist_data = get_artist_data()
     messages = []
 
     def callback(ch, method, properties, body):
@@ -122,23 +123,38 @@ def main():
                     genres = []
                     main_artist_popularity = None
                     main_artist_followers = None
+                    sum_of_artists_followers = 0
+                    sum_of_artists_popularity = 0
+                    average_artists_popularity = 0
 
                     for artist in track["artists"]:
                         # TODO: or take the maximum from artists we have (the most popular is the most importatnt)
-                        if artist["name"] in atrist_data:
-                            genres.extend(atrist_data[artist["name"]][0])
+                        if artist["name"] in artist_data:
+                            genres.extend(artist_data[artist["name"]][0])
                             # Set popularity of the first available artist
                             if main_artist_popularity == None:
-                                main_artist_popularity = atrist_data[artist["name"]][1]
+                                main_artist_popularity = artist_data[artist["name"]][1]
                             # Set followers of the first available artist
                             if main_artist_followers == None:
-                                main_artist_followers = atrist_data[artist["name"]][2]
+                                main_artist_followers = artist_data[artist["name"]][2]
+
+                            sum_of_artists_popularity += artist_data[artist["name"]][1]
+                            sum_of_artists_followers += artist_data[artist["name"]][2]
+
+                    average_artists_popularity = ceil(
+                        sum_of_artists_popularity / len(track["artists"])
+                    )
 
                     genres = list(set(genres))
 
                     try:
                         cursor.execute(
-                            "INSERT INTO tracks (spotify_id, name, name_fts_string, main_artist, main_artist_popularity, main_artist_followers, all_artists, all_artists_string, release_date, genres, genres_string, track_number, disc_number, duration_ms, explicit, preview_url, from_album, from_album_spotify_id, album_artist, album_artist_spotify_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING;",
+                            """
+                            INSERT INTO tracks
+                                (spotify_id, name, name_fts_string, main_artist, main_artist_popularity, main_artist_followers, all_artists, all_artists_string, release_date, genres, genres_string, track_number, disc_number, duration_ms, explicit, preview_url, from_album, from_album_spotify_id, album_artist, album_artist_spotify_id, sum_of_artists_followers, average_artists_popularity)
+                            VALUES
+                                (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            ON CONFLICT DO NOTHING;""",
                             (
                                 track["id"],
                                 track["name"],
@@ -160,6 +176,8 @@ def main():
                                 album["id"],
                                 album["artists"][0]["name"],
                                 album["artists"][0]["id"],
+                                sum_of_artists_followers,
+                                average_artists_popularity,
                             ),
                         )
                     except Exception as e:
