@@ -1,3 +1,9 @@
+"""
+after: dba07ebc55fe
+after_name: (Add sum_of_followers_to_tracks)
+Updates 'tracks.sum_of_artists_followers' column with proper sum
+"""
+
 from math import ceil
 import os
 import sys
@@ -12,11 +18,6 @@ log = get_logger(os.path.basename(__file__))
 
 
 def main():
-    """
-    Updates 'tracks.sum_of_artists_followers' column with proper sum
-    should be run after dba07ebc55fe revision (Add sum_of_followers_to_tracks)
-    """
-
     db_connection, cursor = db.init_connection()
 
     def get_artist_data():
