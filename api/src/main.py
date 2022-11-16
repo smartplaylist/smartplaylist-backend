@@ -1,8 +1,10 @@
 from typing import Union
 
+from fastapi import Request
 from lib.server import app
 from models.stats import Stats
 from models.track import Track
+import playlist
 
 
 def timestamp_to_string(timestamp):
@@ -13,6 +15,15 @@ def timestamp_to_string(timestamp):
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
+
+
+@app.post("/user/save_playlist")
+async def user_save_playlist(request: Request):
+    request_params = await request.json()
+    result = playlist.save_playlist(
+        request_params["accessToken"], request_params["ids"]
+    )
+    return {"saved": True} | result
 
 
 @app.get("/init")

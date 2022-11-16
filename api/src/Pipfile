@@ -9,6 +9,7 @@ pydantic = "==1.10.2"
 uvicorn = "==0.18.3"
 sqlalchemy = "~=1.4.42"
 psycopg2-binary = "~=2.9.4"
+spotipy = "==2.19.0"
 
 [dev-packages]
 
