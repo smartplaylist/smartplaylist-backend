@@ -12,9 +12,50 @@ def timestamp_to_string(timestamp):
     return timestamp
 
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
+@app.get("/tracks")
+async def tracks(
+    tem="0,100",
+    pop="0,100",
+    map="0,100",
+    maf="0,100",
+    dan="0,100",
+    ene="0,100",
+    spe="0,100",
+    aco="0,100",
+    ins="0,100",
+    liv="0,100",
+    val="0,100",
+    rel="0,100",
+    key="0,100",
+    limit=250,
+    order="rel,desc",
+    gen="",
+    nam="",
+):
+    key = key.split(",")
+
+    if key[0] == "any":
+        key[0] = 0
+    if key[1] == "any":
+        key[1] = 12
+
+    return Track().search(
+        name=nam.strip(","),
+        genres=gen.strip(","),
+        tempo=tem.split(","),
+        popularity=pop.split(","),
+        main_artist_followers=maf.split(","),
+        main_artist_popularity=map.split(","),
+        danceability=dan.split(","),
+        energy=ene.split(","),
+        speechiness=spe.split(","),
+        acousticness=aco.split(","),
+        instrumentalness=ins.split(","),
+        liveness=liv.split(","),
+        valence=val.split(","),
+        release=rel.split(","),
+        key=key,
+    )
 
 
 @app.post("/user/save_playlist")
@@ -23,7 +64,7 @@ async def user_save_playlist(request: Request):
     result = playlist.save_playlist(
         request_params["accessToken"], request_params["ids"]
     )
-    return {"saved": True} | result
+    return {"saved": True, **result}
 
 
 @app.get("/init")
@@ -66,13 +107,3 @@ def read_init():
         "albums_lastfm_tags_added": result[32],
         "tracks_lastfm_tags_added": result[33],
     }
-
-
-@app.get("/search")
-def search():
-    return Track().search(name="Good", genres_string="rap", key=1)
-
-
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Union[str, None] = None):
-    return {"item_id": item_id, "q": q}
