@@ -1,5 +1,19 @@
 # Smartplaylist dev log
 
+## 2023-05-24
+
+* I have created a mock Spotify API to test if it respects `Retry-After` header in `429` reponses and the results were positive. Spotipy (using Requests) is waiting before the next request the number of seconds returned in the `Retry-After` header.
+
+## 2023-05-23
+
+* I have created a `create_local_environment.sh` file for running a full environment locally.
+
+## 2023-05-22
+
+I came back to programming after half a year.
+
+* I have configured certbot to update SSL certificate automatically for production <https://smartplaylist.me>
+
 ## 2022-11-19
 
 * Working on the fastapi `/tracks` endpoint
@@ -9,7 +23,7 @@
 ## 2022-11-16
 
 * I am trying to use Apache Ignite as database for selecting data, to make `SELECT` queries faster
-* The idea is to have Apache Ignite as a layer on top od current Postgres only for selects and to sync date once a day
+* The idea is to have Apache Ignite as a layer on top of current Postgres only for selects and to sync date once a day
 * I am working on [use_ignite](<https://github.com/jkulak/smartplaylist-backend/tree/use_ignite>) branch
 * There is a Python client that seems to be up to date and actively developed: <https://github.com/apache/ignite-python-thin-client>
 * There is a acively maintained Docker image: <https://hub.docker.com/r/apacheignite/ignite>

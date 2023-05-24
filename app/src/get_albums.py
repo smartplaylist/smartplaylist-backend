@@ -30,7 +30,8 @@ def filter_album(album):
 def update_total_albums(artist_id, result, cursor):
     """Update total albums for the current artist
     Even though we might not store all those albums
-    It is used for determining if there are new releases in Spotify's database"""
+    It is used for determining if there are new releases in Spotify's database
+    """
 
     try:
         cursor.execute(
@@ -140,7 +141,9 @@ def main():
                     ),
                 )
             except Exception as e:
-                log.exception("Unhandled exception", exception=e, exc_info=True)
+                log.exception(
+                    "Unhandled exception", exception=e, exc_info=True
+                )
             else:
                 log.info(
                     "💿 Album " + ("saved" if cursor.rowcount else "exists"),
@@ -159,7 +162,9 @@ def main():
                                 "spotify_id": item["id"],
                                 "album_name": item["name"],
                                 "album_artist": artists[0],
-                                "album_artist_spotify_id": item["artists"][0]["id"],
+                                "album_artist_spotify_id": item["artists"][0][
+                                    "id"
+                                ],
                             }
                         ),
                         properties=pika.BasicProperties(

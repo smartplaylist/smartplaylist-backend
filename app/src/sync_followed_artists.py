@@ -11,6 +11,7 @@ import spotipy
 CHANNEL_ALBUMS_NAME = "artists"
 CHANNEL_RELATED_ARTISTS_NAME = "related_artists"
 SPOTIFY_SCOPE = "user-follow-read"
+SPOTIPY_AUTH_CACHE_PATH = ".cache-spotipy"
 
 log = get_logger(os.path.basename(__file__))
 
@@ -21,7 +22,13 @@ def main():
 
     db_connection, cursor = db.init_connection()
     sp = spotipy.Spotify(
-        auth_manager=spotipy.oauth2.SpotifyPKCE(scope=SPOTIFY_SCOPE, open_browser=False)
+        auth_manager=spotipy.oauth2.SpotifyPKCE(
+            scope=SPOTIFY_SCOPE,
+            open_browser=False,
+            cache_handler=spotipy.CacheFileHandler(
+                cache_path=SPOTIPY_AUTH_CACHE_PATH
+            )
+        )
     )
 
     results = sp.current_user_followed_artists(limit=50)

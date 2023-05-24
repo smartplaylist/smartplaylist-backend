@@ -40,18 +40,15 @@ Or
 
 Listeners are checking for Rabbit messages and downloading artist, album and track data from Spotify API.
 
-1. Get followed artists `docker run -ti --rm --network smartplaylist_network -p 8083:8083 -v $(pwd)/app/src:/app --env-file .env spotify-grabtrack_app pipenv run python get_followed_artists.py`
-1. Run related artists listener: `docker run -ti --network smartplaylist_network -v $(pwd)/app/src:/app --env-file .env --rm spotify-grabtrack_app pipenv run python get_related_artists.py`
-1. Get albums `docker run -ti --network smartplaylist_network -v $(pwd)/app/src:/app --env-file .env --rm spotify-grabtrack_app pipenv run python get_albums.py`
-1. Get album details `docker run -ti --network smartplaylist_network -v $(pwd)/app/src:/app --env-file .env --rm spotify-grabtrack_app pipenv run python get_album_details.py`
-1. Get track details `docker run -ti --network smartplaylist_network -v $(pwd)/app/src:/app --env-file .env --rm spotify-grabtrack_app pipenv run python get_track_details.py`
+1. Get followed artists `docker run -ti --rm --network smartplaylist_network -p 8083:8083 -v $(pwd)/app/src:/app --env-file .env smartplaylist/app pipenv run python sync_followed_artists.py`
+1. Run related artists listener: `docker run -ti --network smartplaylist_network -v $(pwd)/app/src:/app --env-file .env --rm smartplaylist/app pipenv run python get_related_artists.py`
+1. Get albums `docker run -ti --network smartplaylist_network -v $(pwd)/app/src:/app --env-file .env --rm smartplaylist/app pipenv run python get_albums.py`
+1. Get album details `docker run -ti --network smartplaylist_network -v $(pwd)/app/src:/app --env-file .env --rm smartplaylist/app pipenv run python get_album_details.py`
+1. Get track details `docker run -ti --network smartplaylist_network -v $(pwd)/app/src:/app --env-file .env --rm smartplaylist/app pipenv run python get_track_details.py`
+1. Update database stats `docker run -ti --network smartplaylist_network -v $(pwd)/app/src:/app --env-file .env --rm smartplaylist/app pipenv run python update_db_stats.py`
 
 ## Get oAuth token
 
-After running `get_followed_artists.py` you will be asked to open an URL and paste the URL you were redirected to to obtain the oAuth token.
+After running `sync_followed_artists.py` you will be asked to open an URL and paste the URL you were redirected to to obtain the oAuth token.
 
 Remember, your Spotify Developer application in <https://developer.spotify.com/dashboard/applications> needs to have "Redirect URI" configured and same with `env SPOTIPY_REDIRECT_URI`
-
-## API (using PostgREST)
-
-After running the stack, API will be available at: <http://127.0.0.1:8081/tracks?main_artist=eq.Devlin>

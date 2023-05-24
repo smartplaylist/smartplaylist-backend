@@ -1,10 +1,13 @@
 from typing import Union
 
 from fastapi import Request
+from fastapi import Response
 from lib.server import app
 from models.stats import Stats
 from models.track import Track
 import playlist
+
+DEFAULT_TRACK_LIST_LENGTH = 250
 
 
 def timestamp_to_string(timestamp):
@@ -12,8 +15,9 @@ def timestamp_to_string(timestamp):
     return timestamp
 
 
-@app.get("/tracks")
-async def tracks(
+@app.get("/tracks/count")
+async def tracks_count(
+    response: Response,
     tem="0,100",
     pop="0,100",
     map="0,100",
@@ -27,10 +31,55 @@ async def tracks(
     val="0,100",
     rel="0,100",
     key="0,100",
-    limit=250,
+    gen="",
+    nam="",
+):
+    key = key.split(",")
+
+    if key[0] == "any":
+        key[0] = 0
+    if key[1] == "any":
+        key[1] = 12
+
+    return Track().count(
+        name=nam.strip(","),
+        genres=gen.strip(","),
+        tempo=tem.split(","),
+        popularity=pop.split(","),
+        main_artist_followers=maf.split(","),
+        main_artist_popularity=map.split(","),
+        danceability=dan.split(","),
+        energy=ene.split(","),
+        speechiness=spe.split(","),
+        acousticness=aco.split(","),
+        instrumentalness=ins.split(","),
+        liveness=liv.split(","),
+        valence=val.split(","),
+        release=rel.split(","),
+        key=key,
+    )
+
+
+@app.get("/tracks")
+async def tracks(
+    response: Response,
+    tem="0,100",
+    pop="0,100",
+    map="0,100",
+    maf="0,100",
+    dan="0,100",
+    ene="0,100",
+    spe="0,100",
+    aco="0,100",
+    ins="0,100",
+    liv="0,100",
+    val="0,100",
+    rel="0,100",
+    key="0,100",
     order="rel,desc",
     gen="",
     nam="",
+    limit=DEFAULT_TRACK_LIST_LENGTH,
 ):
     key = key.split(",")
 
@@ -55,6 +104,7 @@ async def tracks(
         valence=val.split(","),
         release=rel.split(","),
         key=key,
+        limit=limit,
     )
 
 
