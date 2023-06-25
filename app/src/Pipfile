@@ -17,6 +17,7 @@ structlog = "==21.5.0"
 requests-cache = "*"
 redis = "*"
 pylast = "==5"
+smsapi-client = "==2.7.0"
 
 [dev-packages]
 
