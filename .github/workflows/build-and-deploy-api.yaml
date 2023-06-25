@@ -1,6 +1,7 @@
 name: Build and deploy API
 
 on:
+    workflow_dispatch:
     push:
         tags:
             - "api-v[0-9]+.[0-9]+.[0-9]+"

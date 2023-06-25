@@ -1,6 +1,7 @@
 name: Build and deploy app
 
 on:
+    workflow_dispatch:
     push:
         tags:
             - "app-v[0-9]+.[0-9]+.[0-9]+"
