@@ -13,7 +13,7 @@ SMSAPI_TOKEN = os.getenv("SMSAPI_TOKEN")
 NOTIFICATION_PHONE_NUMBER = os.getenv("NOTIFICATION_PHONE_NUMBER")
 
 # Define your queues and the minimum number of messages for each
-QUEUES = {"albums": 20, "artists": 0, "tracks": 50}
+QUEUES = {"albums": 1, "artists": 0, "tracks": 1}
 
 smsapi = SmsApiPlClient(access_token=SMSAPI_TOKEN)
 
