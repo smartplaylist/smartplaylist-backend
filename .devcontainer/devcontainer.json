@@ -6,18 +6,15 @@
     "customizations": {
         "vscode": {
             "extensions": [
-                "EditorConfig.EditorConfig",
                 "Gruntfuggly.todo-tree",
-                "ms-python.black-formatter",
-                "ms-python.isort",
-                "ms-python.pylint",
+                "charliermarsh.ruff",
+                "donjayamanne.python-environment-manager",
+                "GitHub.copilot",
+                "GitHub.copilot-chat",
                 "ms-python.python",
-                "ms-python.vscode-pylance"
+                "ms-python.vscode-pylance",
             ],
             "settings": {
-                "python.pythonPath": "/usr/local/bin/python",
-                "python.linting.pylintEnabled": true,
-                "python.linting.enabled": true
             }
         }
     },
@@ -26,5 +23,6 @@
         "--network=smartplaylist_network"
     ],
     "forwardPorts": [],
-    "postCreateCommand": "cd ${containerWorkspaceFolder}/app/src; pipenv install"
+    "postCreateCommand": ["apk", "add", "--no-cache", "git"]
+    
 }
