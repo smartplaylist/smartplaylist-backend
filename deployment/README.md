@@ -41,13 +41,11 @@
 
 ## Cron
 
+
 * `crontab -e`
 * `crontab -l`
 
-```cron
-25 12 * * * /home/www/deployment/run_spotify_update.sh >> /home/www/cron_results
-10 23 * * * /home/www/db_backup/db_backup.sh >> /home/www/db_backup/cron_db_backup_results
-```
+Contab configuration in `deployment/cron_scripts/crontab`.
 
 ## Webhooks
 

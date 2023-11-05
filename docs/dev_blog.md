@@ -1,5 +1,15 @@
 # Smartplaylist dev log
 
+## 2023-11-04
+
+* Updated `dev/setup_local_environment.sh` file for running a full environment locally.
+* Updated `README.md` with instructions for running a full environment locally.
+* Configured certbot to update SSL certificate automatically for production, described in <https://github.com/jkulak/smartplaylist-reverseproxy>. Setup from 2023-05-22 was not working.
+
+## 2023-11-03
+
+* I am describing the development process to make it easier to come back after breaks.
+
 ## 2023-05-24
 
 * I have created a mock Spotify API to test if it respects `Retry-After` header in `429` reponses and the results were positive. Spotipy (using Requests) is waiting before the next request the number of seconds returned in the `Retry-After` header.

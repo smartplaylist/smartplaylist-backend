@@ -1,14 +1,37 @@
 # spotify-grabtrack
 
-## Usage
+## Development
 
 1. `cp .env-template .env` and edit environment variables
-1. Run commands from `deployment/first_deployment.sh`
+1. Run  `./dev/setup_local_development.sh` from the root directory
 1. Access Admier: <http://localhost:8080/?pgsql=db&username=postgres>
 1. Open RabbitMQ GUI: <http://localhost:15672/>. Default credentials are `guest`/`guest`
 1. Open the web app: <http://localhost:3001/>
 
 It will run Postgres, Rabbit, Redis for caching requests, RedisInsights for a GUI for Redis, a REST API server and a web app.
+
+### Restore database from production
+
+Database backups are stored in the ~./pg_backup directory on the production server. To restore a database locally, run the `./dev/restore_db.sh` script.
+
+## Deployment
+
+Code is deployed using GitHub Actions. To deploy a new version, simply push a new tag following the semantic versioning format `api-vX.Y.Z` (or `app-vX.Y.Z`). The workflows are defined in `.github/workflows`.
+
+1. Update version info in `deployment/.dependencies` file.
+1. Tag and push your commit, this will trigger the GitHub Action workflow (replace `api` with `app` when needed)
+
+   ```sh
+   git tag api-vX.Y.Z
+   git push origin api-vX.Y.Z
+    ```
+
+Workflows call deployment scripts on a production server. Deployment scripts are
+
+* `deployment/deploy_api.sh`
+* `deployment/deploy_app.sh`
+
+Deployment scripts are not updated automatically, you need to update them manually. Deployment scripts are called using `webhook` tool installed on the production server. Read more about webhook configuration in `deployment/README.md`.
 
 ## Working with PostgreSQL
 
