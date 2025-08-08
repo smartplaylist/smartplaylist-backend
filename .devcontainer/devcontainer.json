@@ -3,6 +3,7 @@
     "build": {
         "dockerfile": "../app/Dockerfile"
     },
+    "features": {},
     "customizations": {
         "vscode": {
             "extensions": [
@@ -12,10 +13,8 @@
                 "GitHub.copilot",
                 "GitHub.copilot-chat",
                 "ms-python.python",
-                "ms-python.vscode-pylance",
-            ],
-            "settings": {
-            }
+                "ms-python.vscode-pylance"
+            ]
         }
     },
     "runArgs": [
@@ -23,6 +22,5 @@
         "--network=smartplaylist_network"
     ],
     "forwardPorts": [],
-    "postCreateCommand": ["apk", "add", "--no-cache", "git"]
-    
+    "postCreateCommand": "apk add --no-cache git"
 }
