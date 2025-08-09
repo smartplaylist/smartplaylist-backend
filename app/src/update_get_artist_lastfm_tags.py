@@ -6,6 +6,7 @@ import os
 from pprint import pprint
 import sys
 
+from imports.custom_decorators import handle_exceptions
 from imports.lastfm import get_lastfm_network
 from imports.logging import get_logger
 import imports.db as db
@@ -18,6 +19,7 @@ STATUS_INVALID_PARAMS = "6"  # as pylast.STATUS_INVALID_PARAMS
 log = get_logger(os.path.basename(__file__))
 
 
+@handle_exceptions
 def get_lastfm_artist_tags(artist, lastfm):
     """Get tags for an artist from Last.fm API
 
@@ -34,23 +36,19 @@ def get_lastfm_artist_tags(artist, lastfm):
             log.info("👨🏽‍🎤 Artist not found on Last.fm", artist=artist)
         else:
             log.exception("Pylast WSError exception", exception=e, exc_info=True)
-    except Exception as e:
-        log.exception("Unhandled exception", exception=e, exc_info=True)
+        return []
 
     tags = [s.item.get_name().lower() for s in tags]
     return tags
 
 
+@handle_exceptions
 def save_lastfm_artist_tags(artist_id, tags, cursor):
-    try:
-        cursor.execute(
-            "UPDATE artists SET lastfm_tags=%s, lastfm_tags_string=%s WHERE spotify_id=%s;",
-            (tags, " ".join(tags), artist_id),
-        )
-    except Exception as e:
-        log.exception("Unhandled exception", exception=e, exc_info=True)
-    else:
-        log.info("👨🏽‍🎤 Added Last.fm tags to artist", id=artist_id, tags=" ".join(tags))
+    cursor.execute(
+        "UPDATE artists SET lastfm_tags=%s, lastfm_tags_string=%s WHERE spotify_id=%s;",
+        (tags, " ".join(tags), artist_id),
+    )
+    log.info("👨🏽‍🎤 Added Last.fm tags to artist", id=artist_id, tags=" ".join(tags))
 
 
 def main():
@@ -80,6 +78,7 @@ def main():
 
 
 if __name__ == "__main__":
+    # Not using a decorator here because it's a control-flow exception
     try:
         main()
     except KeyboardInterrupt:

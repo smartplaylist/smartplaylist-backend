@@ -3,6 +3,7 @@ from math import ceil
 import os
 import sys
 
+from imports.custom_decorators import handle_exceptions
 from imports.decorators import api_attempts
 from imports.logging import get_logger
 from imports.spotipy import sp
@@ -64,25 +65,22 @@ def main():
             ),
         )
 
+    @handle_exceptions
     def update_album(data):
         copyrights = []
 
         for copyright in data["copyrights"]:
             copyrights.append(copyright["text"])
-        try:
-            cursor.execute(
-                "UPDATE albums SET popularity=%s, label=%s, copyrights=%s WHERE spotify_id=%s;",
-                (
-                    data["popularity"],
-                    data["label"],
-                    copyrights,
-                    data["id"],
-                ),
-            )
-        except Exception as e:
-            log.error("Unhandled exception", exception=e, exc_info=True)
-        else:
-            log.info("💿 Album's details updated", id=data["id"])
+        cursor.execute(
+            "UPDATE albums SET popularity=%s, label=%s, copyrights=%s WHERE spotify_id=%s;",
+            (
+                data["popularity"],
+                data["label"],
+                copyrights,
+                data["id"],
+            ),
+        )
+        log.info("💿 Album's details updated", id=data["id"])
 
     artist_data = get_artist_data()
     messages = []
@@ -147,7 +145,8 @@ def main():
 
                     genres = list(set(genres))
 
-                    try:
+                    @handle_exceptions
+                    def save_track():
                         cursor.execute(
                             """
                             INSERT INTO tracks
@@ -180,9 +179,6 @@ def main():
                                 average_artists_popularity,
                             ),
                         )
-                    except Exception as e:
-                        log.exception("Unhandled exception", exception=e, exc_info=True)
-                    else:
                         log.info(
                             "🎧 Track " + ("saved" if cursor.rowcount else "exists"),
                             id=track["id"],
@@ -191,6 +187,8 @@ def main():
                         # Publish to queue only if it was added (which means it was not in the db yet)
                         if cursor.rowcount:
                             publish_to_broker(track["id"])
+
+                    save_track()
 
                 ch.basic_ack(message["delivery_tag"])
 
@@ -212,6 +210,7 @@ def main():
 
 
 if __name__ == "__main__":
+    # Not using a decorator here because it's a control-flow exception
     try:
         main()
     except KeyboardInterrupt:

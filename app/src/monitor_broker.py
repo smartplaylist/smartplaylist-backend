@@ -1,6 +1,7 @@
 """Monitor broker message count and alert when it is above given limit in a given time of day"""
 import os
 
+from imports.custom_decorators import handle_exceptions
 import pika
 from smsapi.client import SmsApiPlClient
 from smsapi.exception import SmsApiException
@@ -36,14 +37,12 @@ def check_queue_alerts(channel):
                 )
 
 
+@handle_exceptions
 def send_sms(phone_number, message):
     """Sends an SMS to the specified phone number."""
-    try:
-        send_results = smsapi.sms.send(to=phone_number, message=message)
-        for result in send_results:
-            print(result.id, result.points, result.error)
-    except SmsApiException as exception:
-        print(exception.message, exception.code)
+    send_results = smsapi.sms.send(to=phone_number, message=message)
+    for result in send_results:
+        print(result.id, result.points, result.error)
 
 
 def send_alert(message):

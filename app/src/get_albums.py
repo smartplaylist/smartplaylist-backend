@@ -4,6 +4,7 @@ import json
 import os
 import sys
 
+from imports.custom_decorators import handle_exceptions
 from imports.decorators import api_attempts
 from imports.logging import get_logger
 from imports.spotipy import sp
@@ -27,25 +28,22 @@ def filter_album(album):
     )
 
 
+@handle_exceptions
 def update_total_albums(artist_id, result, cursor):
     """Update total albums for the current artist
     Even though we might not store all those albums
     It is used for determining if there are new releases in Spotify's database
     """
 
-    try:
-        cursor.execute(
-            "UPDATE artists SET total_albums=%s, albums_updated_at=%s WHERE spotify_id=%s;",
-            (result["total"], datetime.now(timezone.utc), artist_id),
-        )
-    except Exception as e:
-        log.exception("Unhandled exception", exception=e, exc_info=True)
-    else:
-        log.info(
-            "👨🏽‍🎤 Updated total albums",
-            id=artist_id,
-            total_albums=result["total"],
-        )
+    cursor.execute(
+        "UPDATE artists SET total_albums=%s, albums_updated_at=%s WHERE spotify_id=%s;",
+        (result["total"], datetime.now(timezone.utc), artist_id),
+    )
+    log.info(
+        "👨🏽‍🎤 Updated total albums",
+        id=artist_id,
+        total_albums=result["total"],
+    )
 
 
 @api_attempts
@@ -122,7 +120,8 @@ def main():
             elif item["release_date_precision"] == "month":
                 release_date += "-01"
 
-            try:
+            @handle_exceptions
+            def save_album():
                 cursor.execute(
                     "INSERT INTO albums (spotify_id, name, main_artist, all_artists, from_discography_of, album_group, album_type, release_date, release_date_precision, total_tracks, from_discography_of_spotify_id, main_artist_spotify_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING;",
                     (
@@ -140,13 +139,8 @@ def main():
                         item["artists"][0]["id"],
                     ),
                 )
-            except Exception as e:
-                log.exception(
-                    "Unhandled exception", exception=e, exc_info=True
-                )
-            else:
                 log.info(
-                    "💿 Album " + ("saved" if cursor.rowcount else "exists"),
+                    "💿 Album " + ("saved"if cursor.rowcount else "exists"),
                     id=item["id"],
                 )
 
@@ -172,6 +166,8 @@ def main():
                         ),
                     )
 
+            save_album()
+
         ch.basic_ack(method.delivery_tag)
 
     consume_channel.basic_qos(prefetch_count=1)
@@ -188,6 +184,7 @@ def main():
 
 
 if __name__ == "__main__":
+    # Not using a decorator here because it's a control-flow exception
     try:
         main()
     except KeyboardInterrupt:
