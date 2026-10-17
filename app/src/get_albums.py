@@ -62,6 +62,32 @@ def get_next(next):
     return sp.next(next)
 
 
+def publish_album_if_needed(publish_channel, item, artists, method, inserted):
+    if inserted is None:
+        return
+
+    log.info(
+        "💿 Album saved" if inserted else "💿 Album exists",
+        id=item["id"],
+    )
+    if (inserted or method.redelivered) and filter_album(item):
+        publish_channel.basic_publish(
+            exchange="",
+            routing_key=WRITING_QUEUE_NAME,
+            body=json.dumps(
+                {
+                    "spotify_id": item["id"],
+                    "album_name": item["name"],
+                    "album_artist": artists[0],
+                    "album_artist_spotify_id": item["artists"][0]["id"],
+                }
+            ),
+            properties=pika.BasicProperties(
+                delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
+            ),
+        )
+
+
 def main():
     consume_channel = broker.create_channel(READING_QUEUE_NAME)
     publish_channel = broker.create_channel(WRITING_QUEUE_NAME)
@@ -139,34 +165,11 @@ def main():
                         item["artists"][0]["id"],
                     ),
                 )
-                log.info(
-                    "💿 Album " + ("saved"if cursor.rowcount else "exists"),
-                    id=item["id"],
-                )
+                return cursor.rowcount
 
-                # Publish to queue only if it was added (which means it was not in the db yet)
-                # Only publish (to get details) for albums that pass the test
-                # Should this be here? Where should I filter this?
-                if cursor.rowcount and filter_album(item):
-                    publish_channel.basic_publish(
-                        exchange="",
-                        routing_key=WRITING_QUEUE_NAME,
-                        body=json.dumps(
-                            {
-                                "spotify_id": item["id"],
-                                "album_name": item["name"],
-                                "album_artist": artists[0],
-                                "album_artist_spotify_id": item["artists"][0][
-                                    "id"
-                                ],
-                            }
-                        ),
-                        properties=pika.BasicProperties(
-                            delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
-                        ),
-                    )
-
-            save_album()
+            publish_album_if_needed(
+                publish_channel, item, artists, method, save_album()
+            )
 
         ch.basic_ack(method.delivery_tag)
 

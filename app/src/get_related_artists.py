@@ -21,6 +21,31 @@ def get_related_artists(id):
     return sp.artist_related_artists(id)
 
 
+def publish_artist_if_needed(channel_albums, item, method, inserted):
+    if inserted is None:
+        return
+
+    log.info(
+        "👨🏽‍🎤 Artist saved" if inserted else "👨🏽‍🎤 Artist exists",
+        id=item["id"],
+    )
+    if inserted or method.redelivered:
+        channel_albums.basic_publish(
+            exchange="",
+            routing_key=CHANNEL_ALBUMS_NAME,
+            body=json.dumps(
+                {
+                    "spotify_id": item["id"],
+                    "total_albums": 0,
+                    "name": item["name"],
+                }
+            ),
+            properties=pika.BasicProperties(
+                delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
+            ),
+        )
+
+
 def main():
     consume_channel = broker.create_channel(CHANNEL_RELATED_ARTISTS_NAME)
     channel_albums = broker.create_channel(CHANNEL_ALBUMS_NAME)
@@ -64,29 +89,9 @@ def main():
                         False,
                     ),
                 )
-                log.info(
-                    "👨🏽‍🎤 Artist " + ("saved" if cursor.rowcount else "exists"),
-                    id=item["id"],
-                )
+                return cursor.rowcount
 
-                # Only publish if it was added
-                if cursor.rowcount:
-                    channel_albums.basic_publish(
-                        exchange="",
-                        routing_key=CHANNEL_ALBUMS_NAME,
-                        body=json.dumps(
-                            {
-                                "spotify_id": item["id"],
-                                "total_albums": 0,
-                                "name": item["name"],
-                            }
-                        ),
-                        properties=pika.BasicProperties(
-                            delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
-                        ),
-                    )
-
-            save_artist()
+            publish_artist_if_needed(channel_albums, item, method, save_artist())
 
         update_artist(id)
         ch.basic_ack(method.delivery_tag)
