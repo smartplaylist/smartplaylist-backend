@@ -2,6 +2,7 @@ import json
 import os
 import sys
 
+from imports.custom_decorators import handle_exceptions
 from imports.logging import get_logger
 import imports.broker as broker
 import imports.db as db
@@ -41,7 +42,8 @@ def main():
 
     # Iterate over results, save to Postgres, push to Rabbit
     for i, item in enumerate(artists):
-        try:
+        @handle_exceptions
+        def save_artist():
             cursor.execute(
                 "INSERT INTO artists (spotify_id, name, popularity, followers, genres, genres_string, has_related, total_albums) VALUES (%s, %s, %s, %s, %s, %s, %s, 0) ON CONFLICT DO NOTHING;",
                 (
@@ -54,10 +56,6 @@ def main():
                     False,
                 ),
             )
-
-        except Exception as e:
-            log.exception("Unhandled exception", exception=e, exc_info=True)
-        else:
             # Only add to queue if it was added to the db
             if cursor.rowcount:
                 log.info("👨🏽‍🎤 Artist saved", id=item["id"])
@@ -87,12 +85,15 @@ def main():
             else:
                 log.info("👨🏽‍🎤 Artist exists", id=item["id"])
 
+        save_artist()
+
     # Clean up and close connections
     broker.close_connection()
     db.close_connection(db_connection, cursor)
 
 
 if __name__ == "__main__":
+    # Not using a decorator here because it's a control-flow exception
     try:
         main()
     except KeyboardInterrupt:

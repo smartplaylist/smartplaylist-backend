@@ -1,6 +1,7 @@
 import os
 import sys
 
+from imports.custom_decorators import handle_exceptions
 from imports.logging import get_logger
 import imports.db as db
 
@@ -140,7 +141,8 @@ def main():
     albums_with_null_lastfm_tags = get_albums_with_null_lastfm_tags()
     tracks_with_null_lastfm_tags = get_tracks_with_null_lastfm_tags()
 
-    try:
+    @handle_exceptions
+    def save_stats():
         cursor.execute(
             """
             INSERT INTO db_stats (
@@ -196,18 +198,17 @@ def main():
                 (current_stats[6] - tracks_with_null_lastfm_tags[0]),
             ),
         )
-
-    except Exception as e:
-        log.exception("Unhandled exception", exception=e, exc_info=True)
-    else:
         log.info(
             "📈 Saved stats",
         )
+
+    save_stats()
 
     db.close_connection(db_connection, cursor)
 
 
 if __name__ == "__main__":
+    # Not using a decorator here because it's a control-flow exception
     try:
         main()
     except KeyboardInterrupt:
