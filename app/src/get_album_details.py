@@ -88,6 +88,7 @@ def main():
     def callback(ch, method, properties, body):
         message = json.loads(body.decode())
         message["delivery_tag"] = method.delivery_tag
+        message["redelivered"] = method.redelivered
 
         messages.append(message)
 
@@ -179,16 +180,16 @@ def main():
                                 average_artists_popularity,
                             ),
                         )
+                        return cursor.rowcount
+
+                    inserted = save_track()
+                    if inserted is not None:
                         log.info(
-                            "🎧 Track " + ("saved" if cursor.rowcount else "exists"),
+                            "🎧 Track saved" if inserted else "🎧 Track exists",
                             id=track["id"],
                         )
-
-                        # Publish to queue only if it was added (which means it was not in the db yet)
-                        if cursor.rowcount:
+                        if inserted or message["redelivered"]:
                             publish_to_broker(track["id"])
-
-                    save_track()
 
                 ch.basic_ack(message["delivery_tag"])
 

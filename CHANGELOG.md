@@ -4,6 +4,14 @@ Sections by date, newest first. Entries above `### Internal` are what somebody
 using smartplaylist.me can notice; everything below it is for whoever works on
 the code.
 
+## 2026-10-18
+
+### Internal
+
+- **Worker publish failures leave source messages retryable.** Broker errors
+  escape the database error handler, and redeliveries retry downstream
+  publishing when a database write succeeded before the first publish failed. (#40)
+
 ## 2026-10-17
 
 - **A malformed search filter is answered with 400, not a server error.** The
