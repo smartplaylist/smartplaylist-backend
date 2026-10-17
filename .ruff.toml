@@ -1,0 +1,44 @@
+# Ruff configuration
+line-length = 88
+target-version = "py38"
+
+[lint]
+# Enable all rules by default, then selectively disable
+select = ["ALL"]
+ignore = [
+    "D",      # pydocstyle - disable docstring rules
+    "ANN",    # flake8-annotations - disable type annotation requirements
+    "COM812", # trailing-comma-missing (conflicts with formatter)
+    "ISC001", # single-line-implicit-string-concatenation (conflicts with formatter)
+]
+
+[lint.isort]
+# Import sorting configuration (migrated from .isort.cfg)
+# Note: 'profile = black' is replaced with black-compatible settings below
+combine-as-imports = true
+force-single-line = false
+split-on-trailing-comma = true
+# Black-compatible multi-line style (equivalent to multi_line_output = 3)
+from-first = false
+# Force grid wrap disabled (equivalent to force_grid_wrap = 0)
+force-wrap-aliases = false
+
+# Spacing configuration
+lines-after-imports = 1
+
+# Additional isort options
+known-first-party = ["imports", "models"]
+section-order = [
+    "future",
+    "standard-library",
+    "third-party",
+    "first-party",
+    "local-folder"
+]
+
+[format]
+# Use double quotes for strings
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"

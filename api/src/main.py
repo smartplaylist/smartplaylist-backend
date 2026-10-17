@@ -1,8 +1,10 @@
 from typing import Union
 
-from fastapi import Request
+from fastapi import HTTPException
 from fastapi import Response
 from lib.server import app
+from models.requests import SavePlaylistRequest
+from models.requests import TrackSearchParams
 from models.stats import Stats
 from models.track import Track
 import playlist
@@ -18,102 +20,77 @@ def timestamp_to_string(timestamp):
 @app.get("/tracks/count")
 async def tracks_count(
     response: Response,
-    tem="0,100",
-    pop="0,100",
-    map="0,100",
-    maf="0,100",
-    dan="0,100",
-    ene="0,100",
-    spe="0,100",
-    aco="0,100",
-    ins="0,100",
-    liv="0,100",
-    val="0,100",
-    rel="0,100",
-    key="0,100",
-    gen="",
-    nam="",
+    tem: str = "0,100",
+    pop: str = "0,100",
+    map: str = "0,100",
+    maf: str = "0,100",
+    dan: str = "0,100",
+    ene: str = "0,100",
+    spe: str = "0,100",
+    aco: str = "0,100",
+    ins: str = "0,100",
+    liv: str = "0,100",
+    val: str = "0,100",
+    rel: str = "",
+    key: str = "0,12",
+    gen: str = "",
+    nam: str = "",
 ):
-    key = key.split(",")
+    try:
+        params = TrackSearchParams.from_query_params(
+            tem=tem, pop=pop, map=map, maf=maf, dan=dan, ene=ene,
+            spe=spe, aco=aco, ins=ins, liv=liv, val=val, rel=rel,
+            key=key, gen=gen, nam=nam,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
-    if key[0] == "any":
-        key[0] = 0
-    if key[1] == "any":
-        key[1] = 12
-
-    return Track().count(
-        name=nam.strip(","),
-        genres=gen.strip(","),
-        tempo=tem.split(","),
-        popularity=pop.split(","),
-        main_artist_followers=maf.split(","),
-        main_artist_popularity=map.split(","),
-        danceability=dan.split(","),
-        energy=ene.split(","),
-        speechiness=spe.split(","),
-        acousticness=aco.split(","),
-        instrumentalness=ins.split(","),
-        liveness=liv.split(","),
-        valence=val.split(","),
-        release=rel.split(","),
-        key=key,
-    )
+    return Track().count(**params.filters())
 
 
 @app.get("/tracks")
 async def tracks(
     response: Response,
-    tem="0,100",
-    pop="0,100",
-    map="0,100",
-    maf="0,100",
-    dan="0,100",
-    ene="0,100",
-    spe="0,100",
-    aco="0,100",
-    ins="0,100",
-    liv="0,100",
-    val="0,100",
-    rel="0,100",
-    key="0,100",
-    order="rel,desc",
-    gen="",
-    nam="",
-    limit=DEFAULT_TRACK_LIST_LENGTH,
+    tem: str = "0,100",
+    pop: str = "0,100",
+    map: str = "0,100",
+    maf: str = "0,100",
+    dan: str = "0,100",
+    ene: str = "0,100",
+    spe: str = "0,100",
+    aco: str = "0,100",
+    ins: str = "0,100",
+    liv: str = "0,100",
+    val: str = "0,100",
+    rel: str = "",
+    key: str = "0,12",
+    order: str = "rel,desc",
+    gen: str = "",
+    nam: str = "",
+    limit: int = DEFAULT_TRACK_LIST_LENGTH,
 ):
-    key = key.split(",")
+    try:
+        params = TrackSearchParams.from_query_params(
+            tem=tem, pop=pop, map=map, maf=maf, dan=dan, ene=ene,
+            spe=spe, aco=aco, ins=ins, liv=liv, val=val, rel=rel,
+            key=key, gen=gen, nam=nam, limit=limit, order=order,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
-    if key[0] == "any":
-        key[0] = 0
-    if key[1] == "any":
-        key[1] = 12
-
-    return Track().search(
-        name=nam.strip(","),
-        genres=gen.strip(","),
-        tempo=tem.split(","),
-        popularity=pop.split(","),
-        main_artist_followers=maf.split(","),
-        main_artist_popularity=map.split(","),
-        danceability=dan.split(","),
-        energy=ene.split(","),
-        speechiness=spe.split(","),
-        acousticness=aco.split(","),
-        instrumentalness=ins.split(","),
-        liveness=liv.split(","),
-        valence=val.split(","),
-        release=rel.split(","),
-        key=key,
-        limit=limit,
-    )
+    return Track().search(**params.filters(), limit=params.limit)
 
 
 @app.post("/user/save_playlist")
-async def user_save_playlist(request: Request):
-    request_params = await request.json()
-    result = playlist.save_playlist(
-        request_params["accessToken"], request_params["ids"]
-    )
+async def user_save_playlist(request_data: SavePlaylistRequest):
+    try:
+        result = playlist.save_playlist(
+            request_data.access_token,
+            request_data.track_ids,
+            request_data.playlist_name or "",
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save playlist: {e}") from e
     return {"saved": True, **result}
 
 
