@@ -1,5 +1,36 @@
 # Production deployment
 
+## Production location and access
+
+| What | Where |
+|------|--------|
+| **Public site** | **https://smartplaylist.me** (see `docs/dev_blog.md`, CORS in `api/src/lib/server.py`) |
+| **API** | Exposed via reverse proxy at https://smartplaylist.me/fastapi/ (backend container `fastapi` on port 8008; proxy config in [smartplaylist-reverseproxy](https://github.com/jkulak/smartplaylist-reverseproxy)) |
+| **Server hostname** | **`rapid`** — `188.68.231.182`. SSH: `ssh www@rapid`. To discover the IP: `dig smartplaylist.me` or `nslookup smartplaylist.me` — it resolves to `188.68.231.182`. Add to `/etc/hosts` if needed: `188.68.231.182  rapid`. See `_DEV/restore_newest_backup.sh` for `scp` usage. |
+| **Paths on server** | `/home/www/deployment` (scripts, `hooks.json`), `/home/www/spotify-grabtrack` (`.env`), `/home/www/smartplaylist_api` (API deploy dir), `/home/www/db_backup` (DB backups). User `www`. |
+| **Deploy** | Push tag `api-vX.Y.Z` or `app-vX.Y.Z` → workflow builds image → calls webhook `DEPLOY_WEBHOOK_URL/deploy-api` or `.../deploy-app` with `WEBHOOK_SECRET`. |
+
+**Check if production is up (from your machine):**
+
+```bash
+# Site and API (nginx routes /fastapi/ to the API container)
+curl -sI https://smartplaylist.me
+curl -s https://smartplaylist.me/fastapi/init
+```
+
+**SSH to production:** `ssh www@rapid`. Then:
+
+```bash
+# API container
+docker ps | grep fastapi
+docker logs -f --tail 50 fastapi
+
+# Listeners
+docker logs -f --tail 10 albums_listener_1
+```
+
+---
+
 ## Prepare production server
 
 * `ssh-copy-id root@example.com`
