@@ -2,6 +2,7 @@ import math
 import os
 import sys
 
+from imports.custom_decorators import handle_exceptions
 from imports.decorators import api_attempts
 from imports.logging import get_logger
 from imports.spotipy import sp
@@ -64,7 +65,8 @@ def main():
             for i, item in tracks.items():
                 log.info("🔉 Processing", id=i)
 
-                try:
+                @handle_exceptions
+                def update_track():
                     cursor.execute(
                         "UPDATE tracks SET popularity=%s, key=%s, loudness=%s, mode_is_major=%s, danceability=%s, energy=%s, speechiness=%s, acousticness=%s, instrumentalness=%s, liveness=%s, valence=%s, tempo=%s, time_signature=%s, danceability_raw=%s, energy_raw=%s, speechiness_raw=%s, acousticness_raw=%s, instrumentalness_raw=%s, liveness_raw=%s, valence_raw=%s, tempo_raw=%s WHERE spotify_id=%s;",
                         (
@@ -94,9 +96,6 @@ def main():
                             item["id"],
                         ),
                     )
-                except Exception as e:
-                    log.exception("🔉 Unhandled exception", id=item["id"])
-                else:
                     if cursor.rowcount:
                         log.info("🔉 Track updated", id=item["id"])
                     else:
@@ -104,6 +103,8 @@ def main():
                             "🔉 Track not updated (probably not in the database)",
                             id=item["id"],
                         )
+
+                update_track()
                 ch.basic_ack(messages[item["id"]])
             messages.clear()
 
@@ -121,6 +122,7 @@ def main():
 
 
 if __name__ == "__main__":
+    # Not using a decorator here because it's a control-flow exception
     try:
         main()
     except KeyboardInterrupt:

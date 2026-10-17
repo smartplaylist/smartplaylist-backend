@@ -8,6 +8,7 @@ from math import ceil
 import os
 import sys
 
+from imports.custom_decorators import handle_exceptions
 from imports.logging import get_logger
 import imports.db as db
 
@@ -55,7 +56,8 @@ def main():
 
             average_artists_popularity = ceil(sum_of_artists_popularity / len(artists))
 
-            try:
+            @handle_exceptions
+            def update_track_stats():
                 cursor.execute(
                     f"""
                     UPDATE
@@ -67,14 +69,15 @@ def main():
                         spotify_id='{track[0]}'
                     """
                 )
-            except Exception as e:
-                log.exception("Unhandled exception", exception=e, exc_info=True)
+
+            update_track_stats()
 
     # Clean up and close connections
     db.close_connection(db_connection, cursor)
 
 
 if __name__ == "__main__":
+    # Not using a decorator here because it's a control-flow exception
     try:
         main()
     except KeyboardInterrupt:

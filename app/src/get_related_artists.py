@@ -2,6 +2,7 @@ import json
 import os
 import sys
 
+from imports.custom_decorators import handle_exceptions
 from imports.decorators import api_attempts
 from imports.logging import get_logger
 from imports.spotipy import sp
@@ -25,16 +26,13 @@ def main():
     channel_albums = broker.create_channel(CHANNEL_ALBUMS_NAME)
     db_connection, cursor = db.init_connection()
 
+    @handle_exceptions
     def update_artist(spotify_id):
-        try:
-            cursor.execute(
-                "UPDATE artists SET has_related=%s WHERE spotify_id=%s;",
-                (True, spotify_id),
-            )
-        except Exception as e:
-            log.error("Unhandled exception", exc_info=True)
-        else:
-            log.info("👨🏽‍🎤 Artist's has_related updated", id=spotify_id)
+        cursor.execute(
+            "UPDATE artists SET has_related=%s WHERE spotify_id=%s;",
+            (True, spotify_id),
+        )
+        log.info("👨🏽‍🎤 Artist's has_related updated", id=spotify_id)
 
     def callback(ch, method, _, body):
         message = json.loads(body.decode())
@@ -50,7 +48,8 @@ def main():
             return
 
         for _, item in enumerate(result["artists"]):
-            try:
+            @handle_exceptions
+            def save_artist():
                 cursor.execute(
                     "INSERT INTO artists (spotify_id, name, popularity, followers, genres, genres_string, related_to_spotify_id, related_to, has_related, total_albums) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 0) ON CONFLICT DO NOTHING;",
                     (
@@ -65,9 +64,6 @@ def main():
                         False,
                     ),
                 )
-            except Exception as e:
-                log.exception("Unhandled exception", exception=e)
-            else:
                 log.info(
                     "👨🏽‍🎤 Artist " + ("saved" if cursor.rowcount else "exists"),
                     id=item["id"],
@@ -90,6 +86,8 @@ def main():
                         ),
                     )
 
+            save_artist()
+
         update_artist(id)
         ch.basic_ack(method.delivery_tag)
 
@@ -107,6 +105,7 @@ def main():
 
 
 if __name__ == "__main__":
+    # Not using a decorator here because it's a control-flow exception
     try:
         main()
     except KeyboardInterrupt:
